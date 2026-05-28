@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>HI CAR GPS · Torre de Control Delivery</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+  <style>
+    /* ===== Brand vars (overridable via SuperAdmin) ===== */
+    :root {
+      --bx-primary: #0a2b6b;
+      --bx-primary-d: #051c4a;
+      --bx-accent: #e63946;
+      --bx-accent-d: #b32b36;
+      --bx-blue2: #1e5bc6;
+      --bx-amber: #f59e0b;
+      --bx-green: #0a7d3c;
+      --bx-bg: #eef2f7;
+      --bx-line: #e2e8f0;
+      --bx-txt: #0f172a;
+      --bx-muted: #64748b;
+      --bx-ok: #1e5bc6;
+      --bx-red-dark: #b32b36;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bx-bg); color: var(--bx-txt); margin: 0; padding: 0; }
+    .hidden { display: none !important; }
+
+    /* ===== Header ===== */
+    .bx-header { background: linear-gradient(135deg, var(--bx-primary), var(--bx-primary-d)); color: #fff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+    .bx-header .brand { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; }
+    .bx-header .brand .accent { color: var(--bx-accent); }
+    .bx-header .brand .sub { display: block; font-size: .65rem; font-weight: 500; opacity: .85; letter-spacing: .5px; margin-top: 1px; }
+    .bx-btn-small { background: rgba(255,255,255,.16); color: #fff; border: none; font-size: .72rem; padding: 5px 12px; border-radius: 14px; cursor: pointer; font-weight: 700; }
+    .bx-btn-small:hover { background: rgba(255,255,255,.28); }
+    @keyframes pop { 0%{transform:scale(.4);opacity:0} 100%{transform:scale(1);opacity:1} }
+
+    /* ===== Ticker ===== */
+    .bx-ticker { background: linear-gradient(90deg, var(--bx-accent), var(--bx-accent-d), var(--bx-accent)); color: #fff; font-size: .75rem; font-weight: 700; padding: 5px 0; overflow: hidden; white-space: nowrap; letter-spacing: .5px; background-size: 200% 100%; animation: bgshift 6s linear infinite; }
+    .bx-ticker .track { display: inline-block; padding-left: 100%; animation: slide 26s linear infinite; }
+    @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+    @keyframes bgshift { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+    .live-dot { display: inline-block; width: 9px; height: 9px; background: var(--bx-ok); border-radius: 50%; vertical-align: middle; animation: livepulse 1.6s ease-in-out infinite; }
+    @keyframes livepulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.45);opacity:.5;} }
+
+    /* ===== App container ===== */
+    .bx-app { max-width: 1100px; margin: 0 auto; padding: 12px; }
+    .bx-card { background: #fff; border: 1px solid var(--bx-line); border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 6px 16px rgba(10,43,107,.06); }
+    .bx-meta { color: var(--bx-muted); font-size: .8rem; }
+    .bx-btn { background: var(--bx-accent); color: #fff; border: none; border-radius: 10px; padding: 12px 22px; font-weight: 800; cursor: pointer; font-size: 1rem; transition: filter .15s ease; width: 100%; position: relative; overflow: hidden; }
+    .bx-btn:hover { filter: brightness(1.05); }
+    .bx-btn.secondary { background: var(--bx-primary); }
+    .bx-btn::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.28) 50%, transparent 60%); transform: translateX(-120%); animation: shine 5s ease-in-out infinite; pointer-events: none; }
+    @keyframes shine { 0% { transform: translateX(-120%); } 60% { transform: translateX(120%); } 100% { transform: translateX(120%); } }
+
+    /* ===== Login (sober animation) ===== */
+    .bx-login-hero { background: linear-gradient(180deg, #fff, #f8fafc); border-bottom: 1px solid var(--bx-line); padding: 18px 12px 22px; text-align: center; border-radius: 12px 12px 0 0; margin: -16px -16px 16px; }
+    .bx-scene { position: relative; height: 88px; margin: 4px auto 14px; max-width: 480px; background: linear-gradient(180deg, #e8efff 0%, #f3f6fb 56%, #d8e0ec 60%, #d8e0ec 72%, #3a4757 72%, #3a4757 78%, #2c3543 78%); border-radius: 12px; overflow: hidden; border: 1px solid var(--bx-line); box-shadow: inset 0 2px 6px rgba(10,43,107,.05); }
+    .bx-scene .road { position: absolute; left: 0; right: 0; top: 75%; height: 2px; background-image: repeating-linear-gradient(90deg, #fff 0 14px, transparent 14px 28px); animation: roadAnim 1.2s linear infinite; }
+    @keyframes roadAnim { from { background-position: 0 0; } to { background-position: -28px 0; } }
+    .bx-scene .cloud { position: absolute; top: 8px; font-size: .85rem; opacity: .6; animation: floatSlow 28s linear infinite; }
+    .bx-scene .cloud.c2 { animation-duration: 40s; animation-delay: -15s; top: 20px; font-size: .7rem; opacity: .45; }
+    @keyframes floatSlow { 0% { left: 105%; } 100% { left: -10%; } }
+    .bx-scene .bldg { position: absolute; bottom: 25%; right: 18px; font-size: 1.1rem; opacity: .75; }
+    .bx-scene .home { position: absolute; bottom: 25%; left: 18px; font-size: 1rem; opacity: .7; }
+    .bx-scene .truck { position: absolute; top: 32px; font-size: 1.7rem; left: -14%; animation: driveSober 14s ease-in-out infinite; filter: drop-shadow(0 2px 3px rgba(10,43,107,.18)); z-index: 3; }
+    .bx-scene .box { position: absolute; top: 50px; left: 78%; font-size: 1rem; opacity: 0; animation: dropBox 14s ease-in-out infinite; z-index: 2; }
+    @keyframes driveSober {
+      0%   { left: -14%; }
+      45%  { left: 70%; }
+      55%  { left: 70%; }   /* pausa para entregar */
+      100% { left: 115%; }
+    }
+    @keyframes dropBox {
+      0%, 44% { opacity: 0; transform: translateY(0); }
+      48%     { opacity: 1; transform: translateY(0); }
+      54%     { opacity: 1; transform: translateY(12px); }
+      58%     { opacity: 0; transform: translateY(14px); }
+      100%    { opacity: 0; }
+    }
+    .bx-meta-hero { font-size: .8rem; color: var(--bx-muted); margin-top: 4px; }
+    .bx-roles { display: flex; gap: 6px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+    .bx-role-chip { font-size: .7rem; padding: 4px 10px; border-radius: 18px; background: #eef2f7; color: var(--bx-primary); font-weight: 800; border: 1px solid var(--bx-line); }
+    .bx-role-chip.con { background: #fde6e8; color: var(--bx-red-dark); border-color: #f7c8cc; }
+    .bx-role-chip.cli { background: #dbe6fa; color: var(--bx-primary); border-color: #bcd0f5; }
+    .bx-role-chip.adm { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .bx-status { display: inline-flex; align-items: center; gap: 6px; background: #dbe6fa; color: var(--bx-primary); font-size: .72rem; font-weight: 800; padding: 5px 10px; border-radius: 20px; margin-top: 8px; letter-spacing: .4px; }
+
+    /* ===== Pipeline pills ===== */
+    .bx-pipeline { display: flex; gap: 8px; margin: 8px 0 12px; flex-wrap: wrap; }
+    .bx-pill { background: #eef2f7; border-radius: 10px; padding: 9px 12px; flex: 1; min-width: 100px; text-align: center; }
+    .bx-pill b { display: block; font-size: 1.4rem; color: var(--bx-primary); font-weight: 900; line-height: 1; }
+    .bx-pill span { display: block; font-size: .65rem; color: var(--bx-muted); text-transform: uppercase; letter-spacing: .4px; font-weight: 700; margin-top: 4px; }
+    .bx-pill.asig b { color: var(--bx-blue2); }
+    .bx-pill.proc b { color: var(--bx-accent); }
+    .bx-pill.done b { color: var(--bx-green); }
+
+    /* ===== Listas guias ===== */
+    .bx-guia { background: #fff; border: 1px solid var(--bx-line); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: .15s; }
+    .bx-guia:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(10,43,107,.1); }
+    .bx-guia .num { font-weight: 900; color: var(--bx-primary); font-size: .92rem; }
+    .bx-guia .dest { color: #334155; font-weight: 700; font-size: .82rem; margin-top: 2px; }
+    .bx-guia .dir { color: var(--bx-muted); font-size: .72rem; margin-top: 2px; }
+    .bx-guia .meta { color: var(--bx-muted); font-size: .68rem; margin-top: 2px; }
+    .bx-guia .right { margin-left: auto; text-align: right; }
+    .bx-valor { font-size: .92rem; font-weight: 900; color: var(--bx-primary); white-space: nowrap; }
+    .bx-badge { display: inline-block; font-size: .6rem; font-weight: 800; padding: 3px 8px; border-radius: 10px; letter-spacing: .3px; margin-top: 4px; }
+    .bx-badge.asignado { background: #dbeafe; color: #1e40af; }
+    .bx-badge.en_proceso { background: #fef3c7; color: #92400e; }
+    .bx-badge.entregado { background: #dcfce7; color: #166534; }
+    .bx-empty { text-align: center; padding: 24px 12px; color: var(--bx-muted); font-size: .82rem; }
+
+    /* ===== Captura ===== */
+    .bx-ficha { background: #f8fafc; border: 1px solid var(--bx-line); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+    .bx-ficha .row { display: flex; justify-content: space-between; padding: 4px 0; font-size: .82rem; }
+    .bx-ficha .row strong { color: var(--bx-primary); }
+    #firmaWrap { background: #fff; border: 1px dashed var(--bx-muted); border-radius: 10px; }
+    #firma { width: 100%; height: 160px; display: block; touch-action: none; }
+    .bx-foto-preview { max-width: 100%; max-height: 180px; border-radius: 10px; border: 1px solid var(--bx-line); margin-top: 8px; }
+    .bx-check { width: 80px; height: 80px; background: var(--bx-green); border-radius: 50%; color: #fff; font-size: 50px; line-height: 80px; text-align: center; margin: 18px auto; animation: pop .4s ease-out; }
+
+    /* ===== Funnel supervisor ===== */
+    .bx-funnel { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 8px 0; }
+    .bx-funnel .stg { background: #fff; border: 1px solid var(--bx-line); border-radius: 10px; padding: 10px 6px; text-align: center; }
+    .bx-funnel .stg b { display: block; font-size: 1.5rem; font-weight: 900; }
+    .bx-funnel .stg span { display: block; font-size: .58rem; color: var(--bx-muted); text-transform: uppercase; font-weight: 700; letter-spacing: .3px; margin-top: 3px; }
+    .bx-funnel .stg.s0 b { color: var(--bx-primary); }
+    .bx-funnel .stg.s1 b { color: var(--bx-amber); }
+    .bx-funnel .stg.s2 b { color: var(--bx-accent); }
+    .bx-funnel .stg.s3 b { color: var(--bx-blue2); }
+    .bx-funnel .stg.s4 b { color: var(--bx-green); }
+
+    /* ===== Cliente dashboard ===== */
+    .cli-hero { background: linear-gradient(135deg, var(--bx-primary), var(--bx-primary-d)); color: #fff; border: none; }
+    .cli-greeting { font-size: .95rem; color: #cfdaeb; }
+    .cli-company { font-size: 1.4rem; font-weight: 900; margin-top: 2px; }
+    .cli-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 12px; }
+    .cli-kpi { background: #fff; border: 1px solid var(--bx-line); border-radius: 10px; padding: 10px 6px; text-align: center; cursor: pointer; transition: .15s; }
+    .cli-kpi:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(10,43,107,.1); }
+    .cli-kpi.active { border-color: var(--bx-primary); box-shadow: 0 0 0 2px rgba(10,43,107,.18); }
+    .cli-kpi .n { font-size: 1.5rem; font-weight: 900; }
+    .cli-kpi .l { font-size: .62rem; color: var(--bx-muted); text-transform: uppercase; font-weight: 800; letter-spacing: .3px; margin-top: 2px; }
+    .cli-kpi.tot .n { color: var(--bx-primary); }
+    .cli-kpi.prog .n { color: var(--bx-accent); }
+    .cli-kpi.done .n { color: var(--bx-blue2); }
+    .cli-kpi.inv .n { color: var(--bx-green); }
+    .cli-cxp { background: linear-gradient(135deg, var(--bx-primary), var(--bx-primary-d)); color: #fff; border: none; margin-top: 12px; }
+    .cli-cxp-label { font-weight: 900; letter-spacing: 1px; font-size: .76rem; }
+    .cli-cxp-sub { font-size: .7rem; color: #9fb3c8; }
+    .cli-cxp-amount { font-size: 2.2rem; font-weight: 900; margin: 8px 0 4px; }
+    .cli-cxp-amount small { font-size: .8rem; color: #9bff8b; font-weight: 700; margin-left: 6px; }
+    .cli-cxp-break { font-size: .74rem; color: #cfdaeb; }
+    .cli-progress { height: 8px; background: rgba(255,255,255,.15); border-radius: 8px; overflow: hidden; margin-top: 12px; }
+    .cli-progress span { display: block; height: 100%; background: linear-gradient(90deg, var(--bx-blue2), #9bff8b); border-radius: 8px; width: 0%; transition: width .9s cubic-bezier(.7,.2,.3,1); box-shadow: 0 0 12px rgba(155,255,139,.45); }
+    .cli-cxp-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .cli-pdf { background: var(--bx-accent); color: #fff; border: none; padding: 10px 16px; font-size: .85rem; font-weight: 800; border-radius: 10px; cursor: pointer; }
+    .cli-tip { font-size: .7rem; color: #9bff8b; font-weight: 800; }
+    .cli-card { background: #fff; border: 1px solid var(--bx-line); border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+    .cli-card-top { display: flex; justify-content: space-between; }
+    .cli-card-num { font-weight: 900; color: var(--bx-primary); font-size: .92rem; }
+    .cli-card-dest { color: #0f172a; font-weight: 700; font-size: .82rem; margin-top: 2px; }
+    .cli-card-dir { color: var(--bx-muted); font-size: .72rem; margin-top: 2px; }
+    .cli-card-val { font-size: 1rem; font-weight: 900; color: var(--bx-primary); white-space: nowrap; }
+    .cli-timeline { display: flex; align-items: center; margin: 12px 0 8px; }
+    .cli-timeline .step { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; min-width: 56px; }
+    .cli-timeline .dot { width: 16px; height: 16px; border-radius: 50%; border: 3px solid #e2e8f0; background: #fff; }
+    .cli-timeline .lbl { font-size: .56rem; color: #94a3b8; font-weight: 700; margin-top: 4px; text-transform: uppercase; }
+    .cli-timeline .bar { flex: 1; height: 3px; background: #e2e8f0; margin: 0 -2px 18px; align-self: center; border-radius: 2px; }
+    .cli-timeline .bar.on { background: var(--bx-blue2); }
+    .cli-timeline .step.done .dot { background: var(--bx-blue2); border-color: var(--bx-blue2); }
+    .cli-timeline .step.done .lbl { color: var(--bx-blue2); }
+    .cli-timeline .step.active .dot { background: var(--bx-accent); border-color: var(--bx-accent); animation: pulseDot 1.4s ease-in-out infinite; }
+    .cli-timeline .step.active .lbl { color: var(--bx-accent); font-weight: 800; }
+    @keyframes pulseDot { 0%,100%{ box-shadow: 0 0 0 0 rgba(230,57,70,.6); } 50%{ box-shadow: 0 0 0 9px rgba(230,57,70,0); } }
+    .cli-ver { font-size: .78rem; font-weight: 800; color: var(--bx-accent); text-decoration: none; cursor: pointer; }
+    .cli-ver:hover { text-decoration: underline; }
+
+    /* ===== SuperAdmin ===== */
+    .sa-wrap { display: grid; grid-template-columns: 1fr 320px; gap: 16px; }
+    @media (max-width: 980px) { .sa-wrap { grid-template-columns: 1fr; } }
+    .sa-head { background: linear-gradient(135deg, #92400e, #b45309); color: #fff; padding: 14px 18px; border-radius: 14px 14px 0 0; }
+    .sa-head h2 { margin: 0; font-size: 1.05rem; font-weight: 800; }
+    .sa-head p { margin: 2px 0 0; font-size: .75rem; opacity: .9; }
+    .sa-section { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--bx-line); }
+    .sa-section h3 { font-size: .85rem; color: var(--bx-primary); font-weight: 800; text-transform: uppercase; letter-spacing: .5px; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+    .sa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sa-grid label { font-size: .72rem; font-weight: 700; color: var(--bx-muted); margin-bottom: 2px; display: block; }
+    .sa-grid input, .sa-grid select { width: 100%; padding: 8px 10px; border: 1px solid var(--bx-line); border-radius: 8px; font-size: .82rem; }
+    .sa-grid input[type="color"] { padding: 2px; height: 36px; }
+    .sa-full { grid-column: 1 / -1; }
+    .sa-cond-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr auto; gap: 6px; padding: 8px; background: #f8fafc; border-radius: 8px; margin-bottom: 6px; }
+    .sa-cond-row input { padding: 6px 8px; border: 1px solid var(--bx-line); border-radius: 6px; font-size: .76rem; }
+    .sa-cond-row button { background: var(--bx-accent); color: #fff; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; align-self: center; }
+    .sa-guide { background: linear-gradient(180deg, #fff, #fafbfd); border-radius: 14px; padding: 14px; border: 1px solid var(--bx-line); position: sticky; top: 12px; }
+    .sa-guide h3 { margin: 0 0 4px; font-size: .85rem; color: var(--bx-primary); font-weight: 800; }
+    .sa-guide .timer { background: var(--bx-accent); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: .7rem; font-weight: 800; display: inline-block; margin-bottom: 8px; }
+    .sa-guide ol { padding-left: 18px; margin: 8px 0; }
+    .sa-guide ol li { font-size: .78rem; padding: 6px 0; border-bottom: 1px dashed var(--bx-line); }
+    .sa-guide ol li b { color: var(--bx-primary); }
+    .sa-guide ol li .t { color: var(--bx-accent); font-weight: 800; font-size: .68rem; margin-left: 6px; }
+    .sa-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .sa-actions button { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; font-size: .82rem; }
+    .sa-actions .start { background: var(--bx-primary); color: #fff; }
+    .sa-actions .reset { background: #f1f5f9; color: var(--bx-muted); }
+    .sa-actions .save { background: var(--bx-green); color: #fff; }
+    .saved-pill { background: var(--bx-green); color: #fff; font-size: .68rem; padding: 3px 8px; border-radius: 12px; margin-left: 8px; display: none; }
+    .saved-pill.show { display: inline-block; animation: pop .3s ease-out; }
+
+    /* ===== Modal ===== */
+    .bx-modal-bg { position: fixed; inset: 0; background: rgba(11,42,74,.7); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 12px; }
+    .bx-modal { background: #fff; border-radius: 14px; max-width: 800px; width: 100%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+    .bx-modal-head { background: var(--bx-primary); color: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
+    .bx-modal-head h3 { margin: 0; font-size: 1rem; }
+    .bx-modal-head .x { background: rgba(255,255,255,.18); border: none; color: #fff; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-size: 1.2rem; }
+    .bx-modal-body { padding: 0; overflow: auto; flex: 1; }
+    .bx-modal-body iframe { width: 100%; height: 70vh; border: none; }
+    .bx-modal-foot { padding: 12px 16px; border-top: 1px solid var(--bx-line); display: flex; justify-content: flex-end; gap: 8px; }
+
+    .form-control { width: 100%; padding: 12px 14px; border: 1px solid var(--bx-line); border-radius: 10px; font-size: .95rem; margin-bottom: 6px; }
+    .text-center { text-align: center; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-3 { margin-bottom: 12px; }
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <!-- ===== Header dinámico (lee DEMO_CONFIG) ===== -->
+  <div class="bx-header" id="header">
+    <div class="brand">
+      <span id="hBrandName">BEMAU<span class="accent">EXPRESS</span></span>
+      <span class="sub" id="hBrandSub">Operación de Entregas</span>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <button class="bx-btn-small" id="btnSuperAdmin">🛠 SuperAdmin</button>
+      <button class="bx-btn-small hidden" id="btnBack">‹</button>
+      <button class="bx-btn-small hidden" id="btnLogout">Salir</button>
+    </div>
+  </div>
+
+  <!-- ===== Ticker ===== -->
+  <div class="bx-ticker"><span class="track" id="tickerText">💼 Powered by HI CAR GPS · Torre de Control · Trazabilidad con IA · Cobranza automatizada · </span></div>
+
+  <div class="bx-app">
+
+    <!-- ===== LOGIN ===== -->
+    <div id="vLogin" class="bx-card">
+      <div class="bx-login-hero">
+        <div class="bx-scene">
+          <span class="cloud">☁</span>
+          <span class="cloud c2">☁</span>
+          <span class="home">🏠</span>
+          <span class="bldg">🏢</span>
+          <div class="road"></div>
+          <div class="truck">🚚</div>
+          <div class="box">📦</div>
+        </div>
+        <div style="font-weight:800; color: var(--bx-primary); font-size: 1.05rem;">Ingreso al sistema</div>
+        <div class="bx-meta-hero" id="loginSub">Plataforma corporativa</div>
+        <div class="bx-roles">
+          <span class="bx-role-chip">👔 Supervisor</span>
+          <span class="bx-role-chip con">🚚 Conductor</span>
+          <span class="bx-role-chip cli">🏢 Cliente</span>
+          <span class="bx-role-chip adm">🛠 SuperAdmin</span>
+        </div>
+        <div class="bx-status"><span class="live-dot"></span><span id="loginStatus">demo configurada</span></div>
+      </div>
+      <label style="font-size:.78rem; color: var(--bx-muted); font-weight: 700;">Usuario</label>
+      <input id="inUsuario" class="form-control" placeholder="ej. supervisor / conductor / cliente" />
+      <label style="font-size:.78rem; color: var(--bx-muted); font-weight: 700;">Contraseña</label>
+      <input id="inPassword" type="password" class="form-control" placeholder="••••••••" />
+      <button id="btnLogin" class="bx-btn">Ingresar</button>
+      <div class="bx-meta mt-2 text-center" id="loginErr" style="color: var(--bx-accent); min-height: 18px;"></div>
+      <div class="text-center mt-2"><small class="bx-meta">Demo · contraseña única: <strong id="loginPass">bemau2026</strong></small></div>
+    </div>
+
+    <!-- ===== CONDUCTOR ===== -->
+    <div id="vConductor" class="hidden">
+      <div class="bx-card">
+        <div style="font-weight:800; color: var(--bx-primary); font-size: 1.05rem;" id="condNombre">—</div>
+        <div class="bx-meta" id="condVehiculo">—</div>
+      </div>
+      <div class="bx-pipeline">
+        <div class="bx-pill asig"><b id="cnt1">0</b><span>Asignadas</span></div>
+        <div class="bx-pill proc"><b id="cnt2">0</b><span>En proceso</span></div>
+        <div class="bx-pill done"><b id="cnt3">0</b><span>Entregadas</span></div>
+      </div>
+      <button id="btnIniciar" class="bx-btn secondary mb-3">▶ Iniciar ruta (marcar en proceso)</button>
+      <div class="bx-card">
+        <div style="font-weight: 800; color: var(--bx-primary); margin-bottom: 8px;">📋 Mi ruta de hoy</div>
+        <div id="condLista"></div>
+      </div>
+    </div>
+
+    <!-- ===== CAPTURA ===== -->
+    <div id="vCaptura" class="hidden">
+      <div class="bx-card">
+        <div style="font-weight: 800; color: var(--bx-primary); font-size: 1rem;" id="capNumero">Guía —</div>
+        <div class="bx-ficha mt-2" id="capFicha"></div>
+        <div style="font-weight: 700; color: var(--bx-primary); margin-bottom: 6px;">📷 Foto de la entrega</div>
+        <input type="file" id="fotoInput" accept="image/*" capture="environment" class="form-control" />
+        <img id="fotoPreview" class="bx-foto-preview hidden" />
+        <div style="font-weight: 700; color: var(--bx-primary); margin: 10px 0 6px;">✍️ Firma del receptor</div>
+        <div id="firmaWrap"><canvas id="firma"></canvas></div>
+        <button id="btnLimpiarFirma" class="bx-btn secondary mt-2" style="background: var(--bx-muted);">Limpiar firma</button>
+        <button id="btnConfirmar" class="bx-btn mt-3">✓ Registrar entrega</button>
+        <div class="bx-meta mt-2 text-center" id="capMsg" style="min-height: 18px; color: var(--bx-accent);"></div>
+      </div>
+    </div>
+
+    <!-- ===== ÉXITO ===== -->
+    <div id="vExito" class="hidden">
+      <div class="bx-card text-center">
+        <div class="bx-check">✓</div>
+        <div style="font-weight:800; color: var(--bx-primary); font-size: 1.2rem;">¡Entrega registrada!</div>
+        <p class="bx-meta mb-3" id="exitoMsg">Se notificó al cliente y al jefe.</p>
+        <button class="bx-btn secondary" id="btnVerActa" style="margin-bottom:8px;">📄 Ver acta generada</button>
+        <button class="bx-btn secondary" id="btnVerEmail" style="margin-bottom:8px; background: var(--bx-blue2);">📧 Ver email enviado al cliente</button>
+        <button class="bx-btn" id="btnVolverRuta">Volver a mi ruta</button>
+      </div>
+    </div>
+
+    <!-- ===== SUPERVISOR ===== -->
+    <div id="vSupervisor" class="hidden">
+      <div class="bx-card">
+        <div style="font-weight: 800; color: var(--bx-primary); font-size: 1.05rem;" id="supNombre">Supervisor</div>
+        <div class="bx-meta">Tablero de Control y Cobranza Corporativa</div>
+      </div>
+      <div class="bx-card">
+        <div style="font-weight: 800; color: var(--bx-primary); margin-bottom: 6px;">📥 Cargar manifiesto</div>
+        <p class="bx-meta mb-2">Sube tu Excel con las guías del día. (O usa el botón de abajo para precargar el ejemplo).</p>
+        <input class="form-control mb-2" type="file" id="inExcel" accept=".xlsx,.xls,.csv" />
+        <button class="bx-btn" id="btnSubirExcel">Cargar y procesar</button>
+        <button class="bx-btn secondary mt-2" id="btnPrecargar" style="background: var(--bx-green);">⚡ Precargar 9 guías del ejemplo (rápido para demo)</button>
+        <div class="bx-meta mt-2" id="ingestaMsg"></div>
+      </div>
+      <div class="bx-card">
+        <div style="font-weight: 800; color: var(--bx-primary); margin-bottom: 8px;">📊 Pipeline de operación</div>
+        <div id="tableroFunnel" class="bx-funnel"></div>
+        <div class="bx-meta mt-2" id="tableroCxc"></div>
+      </div>
+      <div class="bx-card">
+        <div style="font-weight: 800; color: var(--bx-primary); margin-bottom: 4px;">🏢 Cliente Corporativo</div>
+        <div id="cxcCliente" style="font-size: 1.1rem; font-weight: 800; color: var(--bx-primary); margin-bottom: 6px;">—</div>
+        <div class="bx-meta" id="cxcConsolidada">—</div>
+        <button class="bx-btn mt-3" id="btnVerReporte" style="background: var(--bx-primary);">📥 Ver reporte profesional CxC</button>
+        <button class="bx-btn secondary mt-2" id="btnDispararCobranza" style="background: var(--bx-accent);">🤖 Disparar cobranza IA (W2)</button>
+        <div class="bx-meta text-center mt-2" style="font-size: .72rem;">Factura única · IVA 15% · 10% pronto pago 24h</div>
+      </div>
+      <div class="bx-card">
+        <div style="font-weight: 800; color: var(--bx-primary); margin-bottom: 8px;">🚚 Avance por conductor</div>
+        <div id="tableroConductores"></div>
+      </div>
+    </div>
+
+    <!-- ===== CLIENTE ===== -->
+    <div id="vCliente" class="hidden">
+      <div class="bx-card cli-hero">
+        <div class="cli-greeting" id="cliNombre">Hola —</div>
+        <div class="cli-company" id="cliCompany">—</div>
+      </div>
+      <div class="cli-kpis">
+        <div class="cli-kpi tot active" data-state="all"><div class="n" id="kT">0</div><div class="l">Total</div></div>
+        <div class="cli-kpi prog" data-state="en_proceso"><div class="n" id="kP">0</div><div class="l">En camino</div></div>
+        <div class="cli-kpi done" data-state="entregado"><div class="n" id="kE">0</div><div class="l">Entregadas</div></div>
+        <div class="cli-kpi inv" data-state="cerrado"><div class="n" id="kF">0</div><div class="l">Facturadas</div></div>
+      </div>
+      <div class="bx-card cli-cxp">
+        <div class="cli-cxp-label">💳 CUENTA POR PAGAR</div>
+        <div class="cli-cxp-sub">Saldo consolidado con tu proveedor de delivery</div>
+        <div class="cli-cxp-amount" id="cliCxc">$0.00 <small>total con IVA</small></div>
+        <div class="cli-cxp-break" id="cliBreak">—</div>
+        <div class="cli-progress"><span id="cliProg"></span></div>
+        <div class="cli-cxp-foot">
+          <button class="cli-pdf" id="btnCliPDF">📄 Descargar reporte profesional</button>
+          <div class="cli-tip" id="cliTip">⏰ 10% pronto pago disponible</div>
+        </div>
+      </div>
+      <div class="bx-card">
+        <div style="font-weight: 800; color: var(--bx-primary); margin-bottom: 8px;">📦 Detalle de mis pedidos</div>
+        <div id="cliLista"></div>
+      </div>
+    </div>
+
+    <!-- ===== SUPER ADMIN ===== -->
+    <div id="vSuperAdmin" class="hidden">
+      <div class="sa-head">
+        <h2>🛠 SuperAdmin · Configurar Demo Modular para tu cliente</h2>
+        <p>Edita los datos del prospect que vas a presentar. Todo se refleja en login + actas + emails + reportes. <span class="saved-pill" id="savedPill">✓ Guardado</span></p>
+      </div>
+      <div style="background:#fff; border-radius: 0 0 14px 14px; padding: 14px; border: 1px solid var(--bx-line); border-top: none; margin-bottom: 16px;">
+        <div class="sa-wrap">
+          <!-- Forms column -->
+          <div>
+            <!-- Empresa -->
+            <div class="sa-section">
+              <h3>🏷️ 1 · Empresa de delivery (tu prospect)</h3>
+              <div class="sa-grid">
+                <div><label>Nombre comercial</label><input id="saEmpresaNombre" type="text" /></div>
+                <div><label>Tagline</label><input id="saEmpresaTagline" type="text" /></div>
+                <div><label>RUC</label><input id="saEmpresaRuc" type="text" /></div>
+                <div><label>Email contacto</label><input id="saEmpresaEmail" type="email" /></div>
+                <div><label>Color primario</label><input id="saColorPrimary" type="color" /></div>
+                <div><label>Color acento</label><input id="saColorAccent" type="color" /></div>
+              </div>
+            </div>
+            <!-- Cliente Corporativo -->
+            <div class="sa-section">
+              <h3>🏢 2 · Cliente corporativo del demo</h3>
+              <div class="sa-grid">
+                <div><label>Razón social / Nombre</label><input id="saClienteNombre" type="text" /></div>
+                <div><label>RUC</label><input id="saClienteRuc" type="text" /></div>
+                <div><label>Contacto</label><input id="saClienteContacto" type="text" /></div>
+                <div><label>Email</label><input id="saClienteEmail" type="email" /></div>
+                <div><label>Teléfono</label><input id="saClienteTelefono" type="text" /></div>
+              </div>
+            </div>
+            <!-- Supervisor -->
+            <div class="sa-section">
+              <h3>👔 3 · Supervisor (jefe logístico)</h3>
+              <div class="sa-grid">
+                <div><label>Nombre</label><input id="saSupNombre" type="text" /></div>
+                <div><label>Email</label><input id="saSupEmail" type="email" /></div>
+                <div><label>Teléfono</label><input id="saSupTel" type="text" /></div>
+                <div><label>Usuario login</label><input id="saSupUser" type="text" /></div>
+              </div>
+            </div>
+            <!-- Conductores -->
+            <div class="sa-section">
+              <h3>🚚 4 · Equipo de conductores <button id="btnAddCond" style="margin-left:auto; background: var(--bx-primary); color:#fff; border:none; padding: 4px 10px; border-radius: 6px; font-size:.7rem; cursor:pointer;">+ Añadir</button></h3>
+              <div id="saConductores"></div>
+            </div>
+            <!-- Cliente App User -->
+            <div class="sa-section">
+              <h3>🏢 5 · Usuario del cliente para portal</h3>
+              <div class="sa-grid">
+                <div><label>Nombre (saludo)</label><input id="saCliUserNombre" type="text" /></div>
+                <div><label>Usuario login</label><input id="saCliUserUser" type="text" /></div>
+              </div>
+            </div>
+            <!-- Excel / Guías -->
+            <div class="sa-section">
+              <h3>📊 6 · Guías de ejemplo para el demo</h3>
+              <p class="bx-meta" style="margin: 0 0 10px;">Por defecto carga 9 guías reales (Almacenes Japón). Podés también subir tu propio Excel.</p>
+              <div style="display:flex; gap:8px; flex-wrap: wrap;">
+                <button class="bx-btn secondary" id="saBtnUsarEjemplo" style="background: var(--bx-green); width:auto; padding: 10px 14px; font-size:.85rem;">⚡ Usar 9 guías de ejemplo</button>
+                <button class="bx-btn secondary" id="saBtnDescargarPlantilla" style="background: var(--bx-blue2); width:auto; padding: 10px 14px; font-size:.85rem;">⬇ Descargar plantilla CSV</button>
+                <input type="file" id="saInExcel" accept=".xlsx,.xls,.csv" style="flex:1; min-width:200px; padding: 8px;" />
+              </div>
+              <div class="bx-meta mt-2" id="saGuiasMsg">9 guías de ejemplo precargadas</div>
+            </div>
+          </div>
+          <!-- Sidebar guide -->
+          <div>
+            <div class="sa-guide">
+              <h3>🎯 Guía de demo para KAM</h3>
+              <div class="timer">⏱ 5–10 minutos</div>
+              <p class="bx-meta" style="font-size:.75rem; margin: 6px 0 10px;">Pasos lógicos para mostrar toda la cadena al cliente y generar el efecto WOW:</p>
+              <ol>
+                <li><b>Login Supervisor</b> → muestra tablero vacío <span class="t">15s</span></li>
+                <li><b>Subir Excel</b> → 9 guías aparecen <span class="t">30s</span></li>
+                <li><b>Logout, Login Conductor</b> → ve su ruta <span class="t">30s</span></li>
+                <li><b>Iniciar ruta + entregar</b> con foto+firma <span class="t">2 min</span></li>
+                <li><b>Ver acta generada</b> → email simulado <span class="t">30s</span></li>
+                <li><b>Login Cliente</b> → dashboard + CxP <span class="t">1 min</span></li>
+                <li><b>Descargar PDF consolidado</b> → factura única <span class="t">30s</span></li>
+                <li><b>Bot Telegram</b> @hicargps_delivery_bot → consultas IA <span class="t">2 min</span></li>
+                <li><b>Cierre</b> con ROI + propuesta <span class="t">1 min</span></li>
+              </ol>
+              <div class="sa-actions">
+                <button class="reset" id="saBtnReset" title="Volver a datos de demo Bemauexpress">↻ Reset</button>
+                <button class="save" id="saBtnSave">💾 Guardar</button>
+                <button class="start" id="saBtnStart">🚀 Empezar demo</button>
+              </div>
+              <p class="bx-meta mt-2" style="font-size:.7rem; text-align: center;">Tip: si cambias los colores, todo el sistema cambia al instante.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== Modal genérico ===== -->
+  <div id="modal" class="bx-modal-bg hidden">
+    <div class="bx-modal">
+      <div class="bx-modal-head">
+        <h3 id="modalTitle">—</h3>
+        <button class="x" onclick="closeModal()">✕</button>
+      </div>
+      <div class="bx-modal-body" id="modalBody"></div>
+      <div class="bx-modal-foot">
+        <button class="bx-btn secondary" style="background: var(--bx-muted); width:auto; padding: 8px 16px;" onclick="closeModal()">Cerrar</button>
+        <button class="bx-btn" id="modalPrint" style="width:auto; padding: 8px 16px;">🖨 Imprimir / Guardar PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== DEFAULT CONFIG (Bemauexpress demo precargado) =====
+    const DEFAULT_CONFIG = {
+      empresa: {
+        nombre: "BEMAUEXPRESS",
+        tagline: "Operación de Entregas",
+        ruc: "1791234567001",
+        email: "ADMINISTRACION@bemauexpress.com",
+        color_primary: "#0a2b6b",
+        color_accent: "#e63946"
+      },
+      cliente: {
+        nombre: "ALMACENES JAPON",
+        ruc: "0991234567001",
+        contacto: "Eduardo Benavides",
+        email: "rodsosleo@hotmail.com",
+        telefono: "+593 98 588 8882"
+      },
+      supervisor: {
+        nombre: "Leonel Rodriguez",
+        email: "ADMINISTRACION@bemauexpress.com",
+        telefono: "+593 99 928 3234",
+        usuario: "supervisor",
+        password: "bemau2026"
+      },
+      conductores: [
+        { nombre: "DANIEL LUDEÑA", usuario: "dludena", cedula: "131244556-7", telefono: "+593 98 451 2237", licencia: "Tipo E (pesados)", placa: "GBN0488", vehiculo: "Furgón refrigerado", marca: "Hino Dutro 300" },
+        { nombre: "DANNY GARCIA", usuario: "dgarcia", cedula: "130566778-8", telefono: "+593 99 302 8841", licencia: "Tipo E (pesados)", placa: "PAB3544", vehiculo: "Camión liviano", marca: "JAC X200" },
+        { nombre: "MARTIN GONZALEZ", usuario: "mgonzalez", cedula: "092311445-5", telefono: "+593 96 778 1120", licencia: "Tipo C (comercial)", placa: "PAD1555", vehiculo: "Camioneta cabina doble", marca: "Chevrolet D-Max" }
+      ],
+      cliente_user: {
+        nombre: "Eduardo Benavides",
+        usuario: "eduardo",
+        password: "bemau2026"
+      },
+      guias: [
+        { numero_guia: "EQ0034297", destinatario: "ZAMBRANO OSORIO JOSE ANTONIO", direccion: "AV. ELOY ALFARO N32-150", valor: 100, bultos: 2, peso_kg: 15.5, conductor_idx: 0 },
+        { numero_guia: "ES0031566", destinatario: "ZAMBRANO OSORIO KARINA MARIANELA", direccion: "AV. CHONE S/N", valor: 75, bultos: 3, peso_kg: 22.5, conductor_idx: 2 },
+        { numero_guia: "ES0031563", destinatario: "MEZA GARCIA GENITH MAGDALENA", direccion: "AV. CHONE KM 38", valor: 50, bultos: 1, peso_kg: 8.0, conductor_idx: 1 },
+        { numero_guia: "ES0031564", destinatario: "LLANTI S.A.S.", direccion: "AV. CARMELO ZAMBRANO ENTRADA A JIPIJAPA", valor: 100, bultos: 4, peso_kg: 28.0, conductor_idx: 1 },
+        { numero_guia: "ES0031565", destinatario: "MEZA GARCIA GENITH MAGDALENA", direccion: "AV. CHONE KM 38", valor: 50, bultos: 1, peso_kg: 8.0, conductor_idx: 2 },
+        { numero_guia: "ES0031570", destinatario: "LLANTI S.A.S.", direccion: "AV. CARMELO ZAMBRANO ENTRADA A JIPIJAPA", valor: 100, bultos: 4, peso_kg: 28.0, conductor_idx: 1 },
+        { numero_guia: "ES0031566B", destinatario: "ZAMBRANO OSORIO KARINA MARIANELA", direccion: "AV. CHONE S/N", valor: 75, bultos: 3, peso_kg: 22.5, conductor_idx: 0 },
+        { numero_guia: "ES0031567", destinatario: "LLANTI S.A.S.", direccion: "AV. CARMELO ZAMBRANO ENTRADA A JIPIJAPA", valor: 100, bultos: 4, peso_kg: 28.0, conductor_idx: 0 },
+        { numero_guia: "ES0031571", destinatario: "MEZA GARCIA GENITH MAGDALENA", direccion: "AV. CHONE KM 38", valor: 75, bultos: 2, peso_kg: 15.0, conductor_idx: 2 }
+      ]
+    };
+
+    // ===== Estado de runtime =====
+    let CONFIG = loadConfig();
+    let STATE = loadState();  // { guias_state: { numero_guia: {estado, foto_url, firma_url, fecha_entrega} } }
+    let session = null;        // { rol, conductor_idx, usuario, nombre }
+    let signaturePad = null;
+    let currentGuia = null;
+    let fotoBase64 = "";
+    let lastActaHtml = "";
+    let cliFilter = "all";
+
+    const $ = id => document.getElementById(id);
+    const money = v => "$" + Number(v||0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const esc = s => String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+    function loadConfig() {
+      try { const c = JSON.parse(localStorage.getItem("hicargps_demo_config")); return c && c.empresa ? c : JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+      catch(e) { return JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+    }
+    function saveConfig() { localStorage.setItem("hicargps_demo_config", JSON.stringify(CONFIG)); applyBrand(); }
+    function resetConfig() { CONFIG = JSON.parse(JSON.stringify(DEFAULT_CONFIG)); saveConfig(); resetState(); }
+    function loadState() {
+      try { const s = JSON.parse(localStorage.getItem("hicargps_demo_state")); return s && s.guias_state ? s : { guias_state: {} }; }
+      catch(e) { return { guias_state: {} }; }
+    }
+    function saveState() { localStorage.setItem("hicargps_demo_state", JSON.stringify(STATE)); }
+    function resetState() { STATE = { guias_state: {} }; saveState(); }
+
+    function applyBrand() {
+      const r = document.documentElement.style;
+      r.setProperty("--bx-primary", CONFIG.empresa.color_primary);
+      r.setProperty("--bx-accent", CONFIG.empresa.color_accent);
+      // derived darker variants
+      r.setProperty("--bx-primary-d", darken(CONFIG.empresa.color_primary, 25));
+      r.setProperty("--bx-accent-d", darken(CONFIG.empresa.color_accent, 20));
+      // header
+      const brandName = CONFIG.empresa.nombre || "BEMAUEXPRESS";
+      const splitIdx = Math.floor(brandName.length / 2);
+      $("hBrandName").innerHTML = brandName.length > 6
+        ? `${esc(brandName.slice(0, splitIdx))}<span class="accent">${esc(brandName.slice(splitIdx))}</span>`
+        : esc(brandName);
+      $("hBrandSub").textContent = CONFIG.empresa.tagline || "Operación de Entregas";
+      $("loginSub").textContent = `Plataforma corporativa ${CONFIG.empresa.nombre}`;
+      $("loginStatus").textContent = `${CONFIG.cliente.nombre} · cuenta activa`;
+      $("loginPass").textContent = CONFIG.supervisor.password;
+      $("tickerText").textContent = `💼 Powered by HI CAR GPS · ${CONFIG.empresa.nombre} · ${CONFIG.cliente.nombre} cuenta corporativa · Trazabilidad foto+firma · Cobranza con IA · 10% pronto pago 24h · `;
+      document.title = `HI CAR GPS · ${CONFIG.empresa.nombre}`;
+    }
+    function darken(hex, pct) {
+      const c = hex.replace("#","");
+      const num = parseInt(c, 16);
+      let r = (num>>16) - Math.round(255*pct/100);
+      let g = ((num>>8)&0xff) - Math.round(255*pct/100);
+      let b = (num&0xff) - Math.round(255*pct/100);
+      r=Math.max(0,r); g=Math.max(0,g); b=Math.max(0,b);
+      return "#" + ((r<<16)|(g<<8)|b).toString(16).padStart(6,"0");
+    }
+
+    function mostrar(v) {
+      ["vLogin","vConductor","vCaptura","vExito","vSupervisor","vCliente","vSuperAdmin"].forEach(x => $(x).classList.add("hidden"));
+      $(v).classList.remove("hidden");
+      $("btnBack").classList.toggle("hidden", v === "vLogin" || v === "vSuperAdmin");
+      $("btnLogout").classList.toggle("hidden", v === "vLogin" || v === "vSuperAdmin");
+      $("btnSuperAdmin").classList.toggle("hidden", v !== "vLogin");
+      window.scrollTo(0,0);
+    }
+
+    // ===== LOGIN =====
+    function doLogin() {
+      const u = $("inUsuario").value.trim().toLowerCase();
+      const p = $("inPassword").value;
+      $("loginErr").textContent = "";
+      // supervisor
+      if (u === CONFIG.supervisor.usuario.toLowerCase() && p === CONFIG.supervisor.password) {
+        session = { rol: "supervisor", nombre: CONFIG.supervisor.nombre };
+        $("supNombre").textContent = "👔 " + CONFIG.supervisor.nombre;
+        renderSupervisor();
+        mostrar("vSupervisor");
+        return;
+      }
+      // cliente
+      if (u === CONFIG.cliente_user.usuario.toLowerCase() && p === CONFIG.cliente_user.password) {
+        session = { rol: "cliente", nombre: CONFIG.cliente_user.nombre };
+        renderCliente();
+        mostrar("vCliente");
+        return;
+      }
+      // conductor
+      const ci = CONFIG.conductores.findIndex(c => c.usuario.toLowerCase() === u);
+      if (ci >= 0 && p === CONFIG.supervisor.password) {  // misma pass para demo
+        session = { rol: "conductor", conductor_idx: ci, nombre: CONFIG.conductores[ci].nombre };
+        renderConductor();
+        mostrar("vConductor");
+        return;
+      }
+      $("loginErr").textContent = "Usuario o contraseña incorrectos";
+    }
+    function doLogout() { session = null; $("inUsuario").value = ""; $("inPassword").value = ""; mostrar("vLogin"); }
+
+    // ===== CONDUCTOR =====
+    function getGuiasDeConductor(idx) {
+      return CONFIG.guias
+        .filter(g => g.conductor_idx === idx)
+        .map(g => Object.assign({}, g, STATE.guias_state[g.numero_guia] || { estado: "asignado" }));
+    }
+    function renderConductor() {
+      const c = CONFIG.conductores[session.conductor_idx];
+      $("condNombre").textContent = "🚚 " + c.nombre;
+      $("condVehiculo").textContent = `${c.vehiculo} · ${c.marca} · ${c.placa}`;
+      const guias = getGuiasDeConductor(session.conductor_idx);
+      $("cnt1").textContent = guias.filter(g => g.estado === "asignado").length;
+      $("cnt2").textContent = guias.filter(g => g.estado === "en_proceso").length;
+      $("cnt3").textContent = guias.filter(g => g.estado === "entregado" || g.estado === "cerrado").length;
+      $("condLista").innerHTML = guias.length
+        ? guias.map(g => {
+          const ent = g.estado === "entregado" || g.estado === "cerrado";
+          const badge = ent ? "entregado" : (g.estado === "en_proceso" ? "en_proceso" : "asignado");
+          const bl = ent ? "✓ ENTREGADO" : (g.estado === "en_proceso" ? "EN PROCESO" : "POR DESPACHAR");
+          return `<div class="bx-guia" data-guia="${esc(g.numero_guia)}">
+            <div>
+              <div class="num">${esc(g.numero_guia)}</div>
+              <div class="dest">${esc(g.destinatario)}</div>
+              <div class="dir">📍 ${esc(g.direccion)}</div>
+              <div class="meta">📦 ${g.bultos} bultos · ${g.peso_kg} kg</div>
+            </div>
+            <div class="right">
+              <div class="bx-valor">${money(g.valor)}</div>
+              <span class="bx-badge ${badge}">${bl}</span>
+            </div>
+          </div>`;
+        }).join("")
+        : '<div class="bx-empty">No tienes guías asignadas.</div>';
+      document.querySelectorAll("#condLista .bx-guia").forEach(el => {
+        el.addEventListener("click", () => {
+          const g = guias.find(x => x.numero_guia === el.dataset.guia);
+          if (g && g.estado !== "entregado" && g.estado !== "cerrado") abrirCaptura(g);
+        });
+      });
+    }
+    $("btnIniciar")?.addEventListener("click", () => {
+      const guias = getGuiasDeConductor(session.conductor_idx);
+      let n = 0;
+      guias.forEach(g => {
+        if (g.estado === "asignado") { STATE.guias_state[g.numero_guia] = { estado: "en_proceso" }; n++; }
+      });
+      if (n) { saveState(); renderConductor(); alert(`✓ ${n} guías marcadas en proceso. Ya podés tocar cada una para entregarla.`); }
+      else alert("No hay guías por iniciar.");
+    });
+
+    function abrirCaptura(g) {
+      currentGuia = g;
+      const c = CONFIG.conductores[session.conductor_idx];
+      $("capNumero").textContent = `📦 Guía ${g.numero_guia}`;
+      $("capFicha").innerHTML = `
+        <div class="row"><span>Cliente</span><strong>${esc(CONFIG.cliente.nombre)}</strong></div>
+        <div class="row"><span>Recibe</span><strong>${esc(g.destinatario)}</strong></div>
+        <div class="row"><span>Dirección</span><strong>${esc(g.direccion)}</strong></div>
+        <div class="row"><span>Valor</span><strong>${money(g.valor)}</strong></div>
+        <div class="row"><span>Conductor</span><strong>${esc(c.nombre)}</strong></div>
+        <div class="row"><span>Placa</span><strong>${esc(c.placa)}</strong></div>
+      `;
+      $("fotoPreview").classList.add("hidden");
+      $("fotoInput").value = "";
+      fotoBase64 = "";
+      $("capMsg").textContent = "";
+      mostrar("vCaptura");
+      setTimeout(initSignature, 80);
+    }
+    function initSignature() {
+      const canvas = $("firma");
+      canvas.width = canvas.offsetWidth;
+      canvas.height = 160;
+      signaturePad = new SignaturePad(canvas, { backgroundColor: "rgb(255,255,255)" });
+    }
+    $("btnLimpiarFirma").addEventListener("click", () => signaturePad && signaturePad.clear());
+    $("fotoInput").addEventListener("change", async e => {
+      const f = e.target.files[0]; if (!f) return;
+      const fr = new FileReader();
+      fr.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          const max = 1024; let w = img.width, h = img.height;
+          if (w > h && w > max) { h = h * max / w; w = max; }
+          else if (h > max) { w = w * max / h; h = max; }
+          const c = document.createElement("canvas");
+          c.width = w; c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          fotoBase64 = c.toDataURL("image/jpeg", 0.8);
+          $("fotoPreview").src = fotoBase64;
+          $("fotoPreview").classList.remove("hidden");
+        };
+        img.src = ev.target.result;
+      };
+      fr.readAsDataURL(f);
+    });
+    $("btnConfirmar").addEventListener("click", () => {
+      if (!fotoBase64) { $("capMsg").textContent = "Captura una foto primero."; return; }
+      if (!signaturePad || signaturePad.isEmpty()) { $("capMsg").textContent = "Falta la firma del receptor."; return; }
+      const firmaBase64 = signaturePad.toDataURL("image/png");
+      STATE.guias_state[currentGuia.numero_guia] = {
+        estado: "entregado",
+        foto_url: fotoBase64,
+        firma_url: firmaBase64,
+        fecha_entrega: new Date().toISOString()
+      };
+      saveState();
+      // Generar acta y guardar
+      lastActaHtml = generarActa(currentGuia, fotoBase64, firmaBase64);
+      $("exitoMsg").textContent = `Guía ${currentGuia.numero_guia} entregada a ${currentGuia.destinatario}.`;
+      mostrar("vExito");
+    });
+    $("btnVerActa")?.addEventListener("click", () => openModal("📄 Acta de entrega corporativa", lastActaHtml));
+    $("btnVerEmail")?.addEventListener("click", () => openModal("📧 Email enviado al cliente", generarEmailActa(currentGuia, lastActaHtml)));
+    $("btnVolverRuta").addEventListener("click", () => { renderConductor(); mostrar("vConductor"); });
+
+    // ===== SUPERVISOR =====
+    function renderSupervisor() {
+      const all = CONFIG.guias.map(g => Object.assign({}, g, STATE.guias_state[g.numero_guia] || { estado: "asignado" }));
+      const cnt = { creado: 0, asignado: 0, en_proceso: 0, entregado: 0, cerrado: 0 };
+      all.forEach(g => { cnt[g.estado] = (cnt[g.estado]||0) + 1; });
+      $("tableroFunnel").innerHTML = `
+        <div class="stg s0"><b>${cnt.creado||0}</b><span>Creadas</span></div>
+        <div class="stg s1"><b>${cnt.asignado||0}</b><span>Asignadas</span></div>
+        <div class="stg s2"><b>${cnt.en_proceso||0}</b><span>En proceso</span></div>
+        <div class="stg s3"><b>${cnt.entregado||0}</b><span>Entregadas</span></div>
+        <div class="stg s4"><b>${cnt.cerrado||0}</b><span>Facturadas</span></div>
+      `;
+      const cxc = all.filter(g => g.estado === "entregado").reduce((a,b) => a + Number(b.valor||0), 0);
+      $("tableroCxc").innerHTML = `📦 Total: <b>${all.length}</b> guías · 💰 CxC pendiente: <b style="color: var(--bx-accent);">${money(cxc)}</b>`;
+      $("cxcCliente").textContent = "🏢 " + CONFIG.cliente.nombre;
+      const total_iva = cxc * 1.15;
+      const pronto = total_iva * 0.10;
+      $("cxcConsolidada").innerHTML = `Subtotal: <b>${money(cxc)}</b> · IVA 15%: <b>${money(cxc*0.15)}</b> · Total: <b style="color: var(--bx-accent);">${money(total_iva)}</b><br>💸 Ahorro pronto pago 24h: <b style="color: var(--bx-green);">${money(pronto)}</b>`;
+      // Por conductor
+      const byCond = {};
+      CONFIG.conductores.forEach((c,i) => { byCond[i] = { nombre: c.nombre, placa: c.placa, total:0, asig:0, proc:0, ent:0 }; });
+      all.forEach(g => {
+        const b = byCond[g.conductor_idx]; if (!b) return;
+        b.total++;
+        if (g.estado === "asignado") b.asig++;
+        else if (g.estado === "en_proceso") b.proc++;
+        else if (g.estado === "entregado" || g.estado === "cerrado") b.ent++;
+      });
+      $("tableroConductores").innerHTML = Object.values(byCond).map((c,i) => {
+        const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":"  ";
+        return `<div class="bx-guia"><div><div class="dest">${medal} ${esc(c.nombre)}</div><div class="meta">${c.total} guías · ${c.asig} asig · ${c.proc} en proceso · ${c.ent} entregadas · ${esc(c.placa)}</div></div></div>`;
+      }).join("") || '<div class="bx-empty">Sin conductores activos.</div>';
+    }
+    $("btnPrecargar")?.addEventListener("click", () => {
+      resetState();
+      $("ingestaMsg").innerHTML = "✓ <b>9 guías precargadas</b> y asignadas a conductores. Listo para la demo.";
+      renderSupervisor();
+    });
+    $("btnSubirExcel")?.addEventListener("click", () => {
+      const f = $("inExcel").files[0];
+      if (!f) { $("ingestaMsg").textContent = "Selecciona un archivo primero."; return; }
+      $("ingestaMsg").textContent = "📊 Procesando Excel... (en GitHub Pages demo, las guías se cargan del config — sube tu Excel desde el SuperAdmin para reemplazar)";
+      setTimeout(() => { $("ingestaMsg").innerHTML = `✓ Archivo "${esc(f.name)}" leído. <b>${CONFIG.guias.length} guías</b> activas.`; renderSupervisor(); }, 600);
+    });
+    $("btnVerReporte")?.addEventListener("click", () => openModal("📄 Reporte CxC consolidado · Factura única", generarReporteCxC()));
+    $("btnDispararCobranza")?.addEventListener("click", () => openModal("🤖 Cobranza con IA · Borrador generado", generarBorradorCobranza()));
+
+    // ===== CLIENTE =====
+    function renderCliente() {
+      $("cliNombre").textContent = "Hola " + (CONFIG.cliente_user.nombre.split(" ")[0]);
+      $("cliCompany").textContent = "🏢 " + CONFIG.cliente.nombre;
+      const all = CONFIG.guias.map(g => Object.assign({}, g, STATE.guias_state[g.numero_guia] || { estado: "asignado" }));
+      const cnt = { creado:0, asignado:0, en_proceso:0, entregado:0, cerrado:0 };
+      all.forEach(g => cnt[g.estado] = (cnt[g.estado]||0) + 1);
+      const total = all.length;
+      const nP = cnt.en_proceso||0;
+      const nE = cnt.entregado||0;
+      const nF = cnt.cerrado||0;
+      $("kT").textContent = total;
+      $("kP").textContent = nP;
+      $("kE").textContent = nE;
+      $("kF").textContent = nF;
+      const sub = all.filter(g => g.estado === "entregado").reduce((a,b) => a + Number(b.valor||0), 0);
+      const iva = sub * 0.15;
+      const tot = sub + iva;
+      const pronto = tot * 0.10;
+      $("cliCxc").innerHTML = money(tot) + ' <small>total con IVA</small>';
+      $("cliBreak").innerHTML = `Subtotal: <b style="color:#fff;">${money(sub)}</b> · IVA 15%: <b style="color:#fff;">${money(iva)}</b> · Pronto pago: <b style="color:#9bff8b;">−${money(pronto)}</b>`;
+      const pct = total ? Math.round((nE+nF)/total * 100) : 0;
+      $("cliProg").style.width = pct + "%";
+      $("cliTip").textContent = sub > 0 ? `⏰ Ahorra ${money(pronto)} pagando en 24h` : '✓ Sin saldos pendientes';
+      // Lista filtrada
+      const filt = all.filter(g => cliFilter === "all" || g.estado === cliFilter);
+      const stages = ["creado","asignado","en_proceso","entregado","cerrado"];
+      const lbl = { creado:"Recibido", asignado:"Programado", en_proceso:"En camino", entregado:"Entregado", cerrado:"Facturado" };
+      $("cliLista").innerHTML = filt.length ? filt.map(g => {
+        const idx = stages.indexOf(g.estado);
+        const tl = stages.map((s,i) => {
+          const cls = i<idx?"done":(i===idx?"active":"pend");
+          const step = `<div class="step ${cls}"><div class="dot"></div><div class="lbl">${lbl[s]}</div></div>`;
+          return i<4 ? step + `<div class="bar${i<idx?' on':''}"></div>` : step;
+        }).join("");
+        const cond = CONFIG.conductores[g.conductor_idx] || {};
+        const ver = (g.estado === "entregado" || g.estado === "cerrado")
+          ? `<a class="cli-ver" data-acta="${esc(g.numero_guia)}">🔍 Ver detalle de entrega ›</a>`
+          : `<span style="color:#94a3b8; font-size:.72rem;">⏳ Pendiente</span>`;
+        return `<div class="cli-card">
+          <div class="cli-card-top">
+            <div>
+              <div class="cli-card-num">📦 ${esc(g.numero_guia)}</div>
+              <div class="cli-card-dest">${esc(g.destinatario)}</div>
+              <div class="cli-card-dir">📍 ${esc(g.direccion)}</div>
+            </div>
+            <div class="cli-card-val">${money(g.valor)}</div>
+          </div>
+          <div class="cli-timeline">${tl}</div>
+          <div style="display:flex; justify-content:space-between; padding-top:8px; border-top:1px dashed var(--bx-line); font-size:.72rem; color:var(--bx-muted);">
+            <span>🚚 ${esc(cond.nombre || 'Por asignar')} ${cond.placa ? '· '+esc(cond.placa) : ''}</span>
+            ${ver}
+          </div>
+        </div>`;
+      }).join("") : '<div class="bx-empty">Sin pedidos en este filtro.</div>';
+      document.querySelectorAll("#cliLista .cli-ver").forEach(el => {
+        el.addEventListener("click", () => {
+          const g = CONFIG.guias.find(x => x.numero_guia === el.dataset.acta);
+          const st = STATE.guias_state[el.dataset.acta] || {};
+          const html = generarActa(g, st.foto_url, st.firma_url);
+          openModal(`📄 Acta · ${el.dataset.acta}`, html);
+        });
+      });
+    }
+    document.querySelectorAll(".cli-kpi").forEach(k => k.addEventListener("click", () => {
+      cliFilter = k.dataset.state;
+      document.querySelectorAll(".cli-kpi").forEach(x => x.classList.toggle("active", x.dataset.state === cliFilter));
+      renderCliente();
+    }));
+    $("btnCliPDF")?.addEventListener("click", () => openModal("📄 Reporte CxC consolidado", generarReporteCxC()));
+
+    // ===== GENERADORES HTML =====
+    function generarActa(g, fotoUrl, firmaUrl) {
+      if (!g) return '<div style="padding:30px; text-align:center;">Guía no encontrada</div>';
+      const c = CONFIG.conductores[g.conductor_idx] || {};
+      const cli = CONFIG.cliente;
+      const emp = CONFIG.empresa;
+      const fechaStr = new Date().toLocaleString("es-EC", { hour12: false });
+      const tag = "";
+      return `<!DOCTYPE html><html lang='es'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'></head><body style='margin:0;padding:0;background:#eef2f7;'>
+<table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background:#eef2f7;padding:24px 12px;'><tr><td align='center'>
+<table role='presentation' width='640' cellpadding='0' cellspacing='0' style='max-width:640px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:Arial,Helvetica,sans-serif;box-shadow:0 12px 30px rgba(10,43,107,.12);'>
+<tr><td style='background:${emp.color_primary};padding:24px 30px;' bgcolor='${emp.color_primary}'>
+<table role='presentation' width='100%'><tr>
+<td><div style='font-size:13px;letter-spacing:3px;color:${emp.color_accent};font-weight:800;'>${esc(emp.nombre)}</div><div style='font-size:11px;color:#9fb3c8;letter-spacing:1px;'>Trazabilidad de Entregas</div></td>
+<td align='right'><span style='background:${emp.color_accent};color:${emp.color_primary};font-size:11px;font-weight:800;padding:6px 13px;border-radius:20px;letter-spacing:1px;'>ACTA DE ENTREGA</span></td>
+</tr></table></td></tr>
+<tr><td style='padding:24px 30px 6px;'><table role='presentation' width='100%'><tr>
+<td width='56' valign='top'><div style='width:46px;height:46px;background:#1E5BC6;border-radius:50%;color:#ffffff;font-size:26px;text-align:center;line-height:46px;'>&#10003;</div></td>
+<td valign='top' style='padding-left:6px;'><div style='font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;'>Entrega confirmada</div><div style='font-size:22px;font-weight:800;color:${emp.color_primary};line-height:1.2;'>Guía ${esc(g.numero_guia)}</div><span style='display:inline-block;background:#DBE6FA;color:#1E5BC6;font-size:11px;font-weight:800;padding:4px 11px;border-radius:20px;letter-spacing:1px;margin-top:6px;'>ENTREGADO</span></td>
+<td align='right' valign='top'><div style='font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;'>Valor declarado</div><div style='font-size:24px;font-weight:800;color:#1E5BC6;'>${money(g.valor)}</div></td>
+</tr></table></td></tr>
+<tr><td style='padding:10px 30px 0;color:#334155;font-size:14px;line-height:1.6;'><p>Estimados <strong>${esc(cli.nombre)}</strong>, confirmamos la entrega de su guía <strong>${esc(g.numero_guia)}</strong> con la evidencia y los datos de trazabilidad que se detallan a continuación.</p></td></tr>
+<tr><td style='padding:6px 30px 4px;'><div style='font-size:12px;font-weight:800;color:${emp.color_primary};text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;'>Datos de la entrega</div>
+<table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;'>
+<tr><td style='padding:9px 14px;background:#f1f5f9;font-weight:700;color:${emp.color_primary};font-size:13px;width:34%;'>Cliente</td><td style='padding:9px 14px;border-bottom:1px solid #eef2f7;color:#334155;font-size:13px;'>${esc(cli.nombre)}</td></tr>
+<tr><td style='padding:9px 14px;background:#f1f5f9;font-weight:700;color:${emp.color_primary};font-size:13px;'>Recibió</td><td style='padding:9px 14px;border-bottom:1px solid #eef2f7;color:#334155;font-size:13px;'>${esc(g.destinatario)}</td></tr>
+<tr><td style='padding:9px 14px;background:#f1f5f9;font-weight:700;color:${emp.color_primary};font-size:13px;'>Dirección</td><td style='padding:9px 14px;border-bottom:1px solid #eef2f7;color:#334155;font-size:13px;'>${esc(g.direccion)}</td></tr>
+<tr><td style='padding:9px 14px;background:#f1f5f9;font-weight:700;color:${emp.color_primary};font-size:13px;'>Fecha y hora</td><td style='padding:9px 14px;border-bottom:1px solid #eef2f7;color:#334155;font-size:13px;'>${esc(fechaStr)} EC</td></tr>
+</table></td></tr>
+<tr><td style='padding:14px 30px 4px;'><table role='presentation' width='100%' cellspacing='0' cellpadding='0'><tr>
+<td width='49%' valign='top' style='background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;'>
+<div style='font-size:11px;font-weight:800;color:${emp.color_accent};text-transform:uppercase;letter-spacing:1px;'>👤 Conductor responsable</div>
+<div style='font-size:11px;color:#64748b;margin-top:8px;text-transform:uppercase;'>Nombre</div><div style='font-size:14px;color:${emp.color_primary};font-weight:700;'>${esc(c.nombre||'-')}</div>
+<div style='font-size:11px;color:#64748b;margin-top:8px;text-transform:uppercase;'>Cédula</div><div style='font-size:14px;color:${emp.color_primary};font-weight:700;'>${esc(c.cedula||'-')}</div>
+<div style='font-size:11px;color:#64748b;margin-top:8px;text-transform:uppercase;'>Licencia</div><div style='font-size:14px;color:${emp.color_primary};font-weight:700;'>${esc(c.licencia||'-')}</div>
+<div style='font-size:11px;color:#64748b;margin-top:8px;text-transform:uppercase;'>Teléfono</div><div style='font-size:14px;color:${emp.color_primary};font-weight:700;'>${esc(c.telefono||'-')}</div>
+</td><td width='2%'></td>
+<td width='49%' valign='top' style='background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;'>
+<div style='font-size:11px;font-weight:800;color:${emp.color_accent};text-transform:uppercase;letter-spacing:1px;'>🚛 Unidad de transporte</div>
+<div style='font-size:11px;color:#64748b;margin-top:8px;text-transform:uppercase;'>Placa</div><div style='font-size:14px;color:${emp.color_primary};font-weight:700;'>${esc(c.placa||'-')}</div>
+<div style='font-size:11px;color:#64748b;margin-top:8px;text-transform:uppercase;'>Tipo</div><div style='font-size:14px;color:${emp.color_primary};font-weight:700;'>${esc(c.vehiculo||'-')}</div>
+<div style='font-size:11px;color:#64748b;margin-top:8px;text-transform:uppercase;'>Marca</div><div style='font-size:14px;color:${emp.color_primary};font-weight:700;'>${esc(c.marca||'-')}</div>
+</td></tr></table></td></tr>
+<tr><td style='padding:14px 30px 4px;'><div style='font-size:12px;font-weight:800;color:${emp.color_primary};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;'>Detalle del envío</div>
+<table role='presentation' width='100%' cellspacing='0' cellpadding='0'><tr>
+<td width='25%' valign='top' style='padding:6px;'><div style='background:${emp.color_primary};border-radius:10px;padding:12px 10px;text-align:center;'><div style='font-size:17px;font-weight:800;color:#fff;'>${g.bultos||'-'}</div><div style='font-size:10px;color:#9fb3c8;text-transform:uppercase;'>Bultos</div></div></td>
+<td width='25%' valign='top' style='padding:6px;'><div style='background:${emp.color_primary};border-radius:10px;padding:12px 10px;text-align:center;'><div style='font-size:17px;font-weight:800;color:#fff;'>${g.peso_kg||'-'} kg</div><div style='font-size:10px;color:#9fb3c8;text-transform:uppercase;'>Peso</div></div></td>
+<td width='25%' valign='top' style='padding:6px;'><div style='background:${emp.color_primary};border-radius:10px;padding:12px 10px;text-align:center;'><div style='font-size:17px;font-weight:800;color:#fff;'>${money(g.valor)}</div><div style='font-size:10px;color:#9fb3c8;text-transform:uppercase;'>Valor</div></div></td>
+<td width='25%' valign='top' style='padding:6px;'><div style='background:${emp.color_primary};border-radius:10px;padding:12px 10px;text-align:center;'><div style='font-size:17px;font-weight:800;color:#fff;'>Entregada</div><div style='font-size:10px;color:#9fb3c8;text-transform:uppercase;'>Estado</div></div></td>
+</tr></table></td></tr>
+${fotoUrl || firmaUrl ? `<tr><td style='padding:14px 30px 4px;'><div style='font-size:12px;font-weight:800;color:${emp.color_primary};text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;'>Evidencia de entrega</div><table role='presentation' width='100%' cellspacing='0' cellpadding='0'><tr><td width='49%' valign='top'><div style='font-size:11px;color:#64748b;text-transform:uppercase;margin-bottom:6px;'>Foto</div><img src='${fotoUrl||''}' style='width:100%;max-height:300px;object-fit:contain;border-radius:10px;border:1px solid #e2e8f0;'/></td><td width='2%'></td><td width='49%' valign='top'><div style='font-size:11px;color:#64748b;text-transform:uppercase;margin-bottom:6px;'>Firma</div><img src='${firmaUrl||''}' style='width:100%;max-height:300px;object-fit:contain;border-radius:10px;border:1px solid #e2e8f0;background:#fff;'/></td></tr></table></td></tr>` : ''}
+<tr><td style='padding:18px 30px 26px;'><div style='border-top:1px solid #e2e8f0;padding-top:14px;font-size:11px;color:#94a3b8;line-height:1.6;text-align:center;'><strong style='color:${emp.color_primary};'>${esc(emp.nombre)}</strong> · ${esc(emp.tagline)}<br>Documento generado automáticamente al confirmarse la entrega · ${esc(fechaStr)} EC<br>Powered by HI CAR GPS · Torre de Control</div></td></tr>
+</table></td></tr></table></body></html>`;
+    }
+    function generarEmailActa(g, actaHtml) {
+      if (!g) return '<div>Sin guía</div>';
+      const cli = CONFIG.cliente;
+      const emp = CONFIG.empresa;
+      return `<div style="padding: 20px; background: #f1f5f9; font-family: Arial, sans-serif;">
+        <div style="background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #e2e8f0;">
+          <div style="font-size:.78rem; color:#64748b;"><strong>De:</strong> ${esc(emp.email)}</div>
+          <div style="font-size:.78rem; color:#64748b;"><strong>Para:</strong> ${esc(cli.email)}</div>
+          <div style="font-size:.78rem; color:#64748b;"><strong>Asunto:</strong> [${esc(emp.nombre)}] Acta de entrega · Guía ${esc(g.numero_guia)} · ${esc(cli.nombre)}</div>
+        </div>
+        ${actaHtml}
+        <div style="background: var(--bx-green); color: #fff; padding: 10px; border-radius: 8px; margin-top: 12px; text-align: center; font-weight: 700;">✓ Email enviado automáticamente al cliente · 0 segundos</div>
+      </div>`;
+    }
+    function generarReporteCxC() {
+      const all = CONFIG.guias.map(g => Object.assign({}, g, STATE.guias_state[g.numero_guia] || { estado: "asignado" }));
+      const ent = all.filter(g => g.estado === "entregado");
+      const cli = CONFIG.cliente, emp = CONFIG.empresa;
+      const sub = ent.reduce((a,b) => a + Number(b.valor||0), 0);
+      const iva = sub * 0.15;
+      const tot = sub + iva;
+      const dcto = tot * 0.10;
+      const totalPP = tot - dcto;
+      const fecha = new Date();
+      const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+      const fmt = d => `${String(d.getDate()).padStart(2,'0')} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+      const fechaStr = fmt(fecha);
+      const vence = new Date(fecha.getTime() + 30*86400000);
+      const f24 = new Date(fecha.getTime() + 24*3600000);
+      const f24Str = fmt(f24) + ' ' + String(f24.getHours()).padStart(2,'0') + ':' + String(f24.getMinutes()).padStart(2,'0');
+      const invoiceNum = `F-${fecha.getFullYear()}${String(fecha.getMonth()+1).padStart(2,'0')}${String(fecha.getDate()).padStart(2,'0')}-001`;
+      if (!ent.length) return `<div style="padding:60px; text-align:center; font-family:Arial,sans-serif;"><div style="font-size:54px;">📄</div><h2 style="color:${emp.color_primary};">Sin cuentas por cobrar</h2><p style="color:#64748b;">Aún no hay entregas confirmadas para facturar.</p></div>`;
+      const filas = ent.map((r,i) => {
+        const c = CONFIG.conductores[r.conductor_idx] || {};
+        return `<tr><td style="text-align:center;">${i+1}</td><td><strong style="color:${emp.color_primary};">${esc(r.numero_guia)}</strong></td><td style="color:#64748b;">${fechaStr}</td><td>${esc(r.destinatario)}</td><td style="text-align:center;">${r.bultos||'-'}</td><td style="text-align:center;">${r.peso_kg||'-'} kg</td><td style="color:#475569; font-size:11px;">${esc(c.nombre||'-')}<br>${esc(c.placa||'')}</td><td style="text-align:right; font-weight:700;">${money(r.valor)}</td></tr>`;
+      }).join("");
+      return `<div style="font-family:Arial,Helvetica,sans-serif; background:#eef2f7; padding:24px;">
+<div style="max-width:920px; margin:0 auto; background:#fff; border-radius:14px; box-shadow:0 10px 30px rgba(10,43,107,.10); overflow:hidden;">
+<div style="background:linear-gradient(135deg, ${emp.color_primary}, ${darken(emp.color_primary,15)}); color:#fff; padding:24px 32px; display:flex; justify-content:space-between; align-items:center;">
+<div><div style="font-size:24px; letter-spacing:3px; color:${emp.color_accent}; font-weight:800;">${esc(emp.nombre)}</div><div style="font-size:11px; color:#9fb3c8; letter-spacing:1px;">Trazabilidad &amp; Cobranzas</div></div>
+<div style="text-align:right;"><h1 style="margin:0; font-size:22px;">REPORTE CxC · FACTURA ÚNICA</h1><p style="margin:4px 0 0; font-size:11px; color:#9fb3c8; letter-spacing:1px;">${invoiceNum}</p></div>
+</div>
+<div style="padding:28px 32px;">
+<div style="display:flex; gap:24px; margin-bottom:20px; flex-wrap:wrap;">
+<div style="flex:1; min-width:240px;"><div style="font-size:10px; color:${emp.color_accent}; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:4px;">Facturado a</div><h3 style="margin:0 0 6px; color:${emp.color_primary}; font-size:15px;">${esc(cli.nombre)}</h3><p style="margin:1px 0; font-size:12px; color:#475569;">${esc(cli.contacto||'')}</p><p style="margin:1px 0; font-size:12px; color:#475569;">${esc(cli.email||'')}</p><p style="margin:1px 0; font-size:12px; color:#475569;">${esc(cli.telefono||'')}</p><p style="margin:1px 0; font-size:12px; color:#475569;">RUC: ${esc(cli.ruc||'')}</p></div>
+<div style="flex:1; min-width:240px;"><div style="font-size:10px; color:${emp.color_accent}; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:4px;">Emisor</div><h3 style="margin:0 0 6px; color:${emp.color_primary}; font-size:15px;">${esc(emp.nombre)}</h3><p style="margin:1px 0; font-size:12px; color:#475569;">${esc(emp.tagline)}</p><p style="margin:1px 0; font-size:12px; color:#475569;">RUC: ${esc(emp.ruc)}</p><p style="margin:1px 0; font-size:12px; color:#475569;">${esc(emp.email)}</p></div>
+<div style="flex:1; min-width:240px; text-align:right;"><div style="font-size:10px; color:${emp.color_accent}; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:4px;">Fechas</div><p style="margin:1px 0; font-size:12px; color:#475569;"><strong>Emisión:</strong> ${fechaStr}</p><p style="margin:1px 0; font-size:12px; color:#475569;"><strong>Vence:</strong> ${fmt(vence)}</p><p style="margin:1px 0; font-size:12px; color:${emp.color_accent}; font-weight:700;">Pronto pago 10%: hasta ${f24Str}</p></div>
+</div>
+<table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:8px;">
+<thead><tr style="background:${emp.color_primary}; color:#fff;"><th style="padding:9px 8px; text-align:left;">#</th><th style="padding:9px 8px; text-align:left;">Guía</th><th style="padding:9px 8px; text-align:left;">Entrega</th><th style="padding:9px 8px; text-align:left;">Destinatario</th><th style="padding:9px 8px;">Bultos</th><th style="padding:9px 8px;">Peso</th><th style="padding:9px 8px;">Conductor</th><th style="padding:9px 8px; text-align:right;">Valor</th></tr></thead>
+<tbody>${filas}</tbody>
+</table>
+<div style="display:flex; justify-content:flex-end; margin-top:10px;"><div style="min-width:280px; background:${emp.color_primary}; color:#fff; border-radius:10px; padding:12px 18px; font-size:13px;">
+<div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Subtotal</span><span>${money(sub)}</span></div>
+<div style="display:flex; justify-content:space-between; padding:3px 0;"><span>IVA 15%</span><span>${money(iva)}</span></div>
+<div style="display:flex; justify-content:space-between; padding:8px 0 3px; margin-top:6px; border-top:1px solid rgba(255,255,255,.18); font-size:16px; font-weight:800;"><span>TOTAL</span><span style="color:${emp.color_accent};">${money(tot)}</span></div>
+</div></div>
+<div style="background:linear-gradient(90deg,#FFEBEE,#FED7DA,#FFEBEE); border-left:4px solid ${emp.color_accent}; padding:14px 18px; border-radius:8px; margin-top:14px; font-size:13px; color:#B32B36;">💸 <strong>Descuento 10% por pronto pago</strong> — si pagas hasta el <strong>${f24Str}</strong>, abonas <b style="color:${emp.color_primary}; font-size:20px;">${money(totalPP)}</b> (ahorras ${money(dcto)}).</div>
+<div style="background:#f1f5f9; border-radius:10px; padding:14px 18px; margin-top:14px; font-size:12px; color:#475569;"><strong style="color:${emp.color_primary};">Datos para pago:</strong><br>Banco Pichincha · Cta Cte 2100456789 · ${esc(emp.nombre)} · RUC ${esc(emp.ruc)}<br>Banco Guayaquil · Cta Cte 0023456789 · ${esc(emp.nombre)}<br><em>Enviar comprobante a ${esc(emp.email)}</em></div>
+</div>
+<div style="padding:14px 32px 24px; font-size:10px; color:#94a3b8; text-align:center; border-top:1px solid #eef2f7;">Documento generado automáticamente · ${esc(emp.nombre)} · Powered by HI CAR GPS · Torre de Control IA</div>
+</div></div>`;
+    }
+    function generarBorradorCobranza() {
+      const all = CONFIG.guias.map(g => Object.assign({}, g, STATE.guias_state[g.numero_guia] || { estado: "asignado" }));
+      const ent = all.filter(g => g.estado === "entregado");
+      const cli = CONFIG.cliente, emp = CONFIG.empresa;
+      const sub = ent.reduce((a,b) => a + Number(b.valor||0), 0);
+      const tot = sub * 1.15;
+      const f24 = new Date(Date.now() + 24*3600000);
+      const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+      const f24Str = `${String(f24.getDate()).padStart(2,'0')} ${meses[f24.getMonth()]} ${f24.getFullYear()}`;
+      const cuerpo = `<p>Estimados <strong>${esc(cli.nombre)}</strong>, junto con saludarles cordialmente, ponemos a su disposición el estado de cuenta consolidado correspondiente a las entregas realizadas durante el período en curso.</p><p>Adjuntamos el detalle de las <strong>${ent.length} guías</strong> entregadas exitosamente con valor total de <strong>${money(tot)}</strong> (con IVA). Le recordamos que aplicando pronto pago dentro de las próximas 24 horas obtiene un <strong>10% de descuento</strong>.</p>`;
+      return `<div style="padding: 20px; background: #f1f5f9; font-family: Arial, sans-serif;">
+        <div style="background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #e2e8f0;">
+          <div style="font-size:.78rem; color:#64748b;"><strong>De:</strong> ${esc(emp.email)}</div>
+          <div style="font-size:.78rem; color:#64748b;"><strong>Para:</strong> ${esc(cli.email)}</div>
+          <div style="font-size:.78rem; color:#64748b;"><strong>Asunto:</strong> [${esc(emp.nombre)}] Estado de cuenta · ${esc(cli.nombre)} · ${money(tot)}</div>
+          <div style="font-size:.7rem; color: var(--bx-amber); margin-top: 6px; font-weight: 800;">⚠ BORRADOR (no enviado) · revisar y enviar manualmente</div>
+        </div>
+        <div style="background:#fff; padding: 16px; border-radius: 8px; font-size:.88rem; line-height: 1.5;">
+          ${cuerpo}
+          <p>Quedamos atentos a su confirmación.</p>
+          <p style="color: var(--bx-muted); font-size:.78rem;">Atte,<br><strong>${esc(emp.nombre)}</strong></p>
+        </div>
+        <div style="background: var(--bx-accent); color: #fff; padding: 10px; border-radius: 8px; margin-top: 12px; text-align: center; font-weight: 700;">🤖 Generado por GPT-4o-mini · Listo en 2 segundos · 0 esfuerzo humano</div>
+      </div>`;
+    }
+
+    // ===== MODAL =====
+    function openModal(title, html) {
+      $("modalTitle").textContent = title;
+      const iframe = document.createElement("iframe");
+      $("modalBody").innerHTML = "";
+      $("modalBody").appendChild(iframe);
+      iframe.contentDocument.open();
+      iframe.contentDocument.write(html);
+      iframe.contentDocument.close();
+      $("modal").classList.remove("hidden");
+      $("modalPrint").onclick = () => iframe.contentWindow.print();
+    }
+    function closeModal() { $("modal").classList.add("hidden"); }
+    window.closeModal = closeModal;
+
+    // ===== SUPER ADMIN =====
+    function fillSuperAdmin() {
+      $("saEmpresaNombre").value = CONFIG.empresa.nombre;
+      $("saEmpresaTagline").value = CONFIG.empresa.tagline;
+      $("saEmpresaRuc").value = CONFIG.empresa.ruc;
+      $("saEmpresaEmail").value = CONFIG.empresa.email;
+      $("saColorPrimary").value = CONFIG.empresa.color_primary;
+      $("saColorAccent").value = CONFIG.empresa.color_accent;
+      $("saClienteNombre").value = CONFIG.cliente.nombre;
+      $("saClienteRuc").value = CONFIG.cliente.ruc;
+      $("saClienteContacto").value = CONFIG.cliente.contacto;
+      $("saClienteEmail").value = CONFIG.cliente.email;
+      $("saClienteTelefono").value = CONFIG.cliente.telefono;
+      $("saSupNombre").value = CONFIG.supervisor.nombre;
+      $("saSupEmail").value = CONFIG.supervisor.email;
+      $("saSupTel").value = CONFIG.supervisor.telefono;
+      $("saSupUser").value = CONFIG.supervisor.usuario;
+      $("saCliUserNombre").value = CONFIG.cliente_user.nombre;
+      $("saCliUserUser").value = CONFIG.cliente_user.usuario;
+      renderConductoresSA();
+    }
+    function renderConductoresSA() {
+      $("saConductores").innerHTML = CONFIG.conductores.map((c,i) => `
+        <div class="sa-cond-row" data-idx="${i}">
+          <input data-f="nombre" placeholder="Nombre" value="${esc(c.nombre)}" />
+          <input data-f="usuario" placeholder="usuario" value="${esc(c.usuario)}" />
+          <input data-f="cedula" placeholder="Cédula" value="${esc(c.cedula)}" />
+          <input data-f="telefono" placeholder="Tel" value="${esc(c.telefono)}" />
+          <input data-f="placa" placeholder="Placa" value="${esc(c.placa)}" />
+          <input data-f="vehiculo" placeholder="Vehículo" value="${esc(c.vehiculo)}" />
+          <input data-f="marca" placeholder="Marca" value="${esc(c.marca)}" />
+          <button data-rm="${i}" title="Eliminar">✕</button>
+        </div>`).join("");
+      document.querySelectorAll(".sa-cond-row [data-rm]").forEach(b => b.addEventListener("click", e => {
+        const idx = parseInt(e.target.dataset.rm);
+        CONFIG.conductores.splice(idx, 1);
+        renderConductoresSA();
+      }));
+    }
+    function readSuperAdmin() {
+      CONFIG.empresa.nombre = $("saEmpresaNombre").value.trim();
+      CONFIG.empresa.tagline = $("saEmpresaTagline").value.trim();
+      CONFIG.empresa.ruc = $("saEmpresaRuc").value.trim();
+      CONFIG.empresa.email = $("saEmpresaEmail").value.trim();
+      CONFIG.empresa.color_primary = $("saColorPrimary").value;
+      CONFIG.empresa.color_accent = $("saColorAccent").value;
+      CONFIG.cliente.nombre = $("saClienteNombre").value.trim();
+      CONFIG.cliente.ruc = $("saClienteRuc").value.trim();
+      CONFIG.cliente.contacto = $("saClienteContacto").value.trim();
+      CONFIG.cliente.email = $("saClienteEmail").value.trim();
+      CONFIG.cliente.telefono = $("saClienteTelefono").value.trim();
+      CONFIG.supervisor.nombre = $("saSupNombre").value.trim();
+      CONFIG.supervisor.email = $("saSupEmail").value.trim();
+      CONFIG.supervisor.telefono = $("saSupTel").value.trim();
+      CONFIG.supervisor.usuario = $("saSupUser").value.trim().toLowerCase();
+      CONFIG.cliente_user.nombre = $("saCliUserNombre").value.trim();
+      CONFIG.cliente_user.usuario = $("saCliUserUser").value.trim().toLowerCase();
+      const conds = [];
+      document.querySelectorAll(".sa-cond-row").forEach(row => {
+        const c = {};
+        row.querySelectorAll("input[data-f]").forEach(i => c[i.dataset.f] = i.value.trim());
+        c.licencia = c.licencia || "Tipo C";
+        if (c.nombre) conds.push(c);
+      });
+      if (conds.length) CONFIG.conductores = conds;
+    }
+    $("btnSuperAdmin")?.addEventListener("click", () => { fillSuperAdmin(); mostrar("vSuperAdmin"); });
+    $("saBtnSave")?.addEventListener("click", () => {
+      readSuperAdmin(); saveConfig();
+      $("savedPill").classList.add("show");
+      setTimeout(() => $("savedPill").classList.remove("show"), 2000);
+    });
+    $("saBtnStart")?.addEventListener("click", () => {
+      readSuperAdmin(); saveConfig(); resetState();
+      alert("✓ Demo lista. El cliente, conductores y empresa están actualizados en todos los formularios y documentos.");
+      mostrar("vLogin");
+    });
+    $("saBtnReset")?.addEventListener("click", () => {
+      if (confirm("¿Volver a los datos de demo Bemauexpress por defecto?")) { resetConfig(); fillSuperAdmin(); }
+    });
+    $("btnAddCond")?.addEventListener("click", () => {
+      readSuperAdmin();
+      CONFIG.conductores.push({ nombre: "NUEVO CONDUCTOR", usuario: "nuevo"+(CONFIG.conductores.length+1), cedula: "", telefono: "", licencia: "Tipo C", placa: "ABC1234", vehiculo: "Camioneta", marca: "—" });
+      renderConductoresSA();
+    });
+    $("saBtnUsarEjemplo")?.addEventListener("click", () => {
+      CONFIG.guias = JSON.parse(JSON.stringify(DEFAULT_CONFIG.guias));
+      saveConfig(); resetState();
+      $("saGuiasMsg").innerHTML = "✓ 9 guías de ejemplo recargadas.";
+    });
+    $("saBtnDescargarPlantilla")?.addEventListener("click", () => {
+      const csv = "numero_guia,destinatario,direccion,valor,bultos,peso_kg,conductor_idx\nEX0001,JUAN PEREZ,Av. Test 123,50,1,5,0\nEX0002,MARIA SOSA,Calle Demo,75,2,12,1\n";
+      const blob = new Blob([csv], { type: "text/csv" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = "plantilla_guias.csv"; a.click();
+    });
+    $("saInExcel")?.addEventListener("change", e => {
+      const f = e.target.files[0]; if (!f) return;
+      const fr = new FileReader();
+      fr.onload = ev => {
+        try {
+          const lines = ev.target.result.split(/\r?\n/).filter(l => l.trim());
+          const hdr = lines[0].split(",").map(s => s.trim().toLowerCase());
+          const rows = lines.slice(1).map(l => {
+            const cells = l.split(",");
+            const obj = {};
+            hdr.forEach((h,i) => obj[h] = cells[i] && cells[i].trim());
+            obj.valor = Number(obj.valor||0);
+            obj.bultos = Number(obj.bultos||1);
+            obj.peso_kg = Number(obj.peso_kg||0);
+            obj.conductor_idx = Number(obj.conductor_idx||0);
+            return obj;
+          }).filter(r => r.numero_guia);
+          if (rows.length) { CONFIG.guias = rows; saveConfig(); resetState(); $("saGuiasMsg").innerHTML = `✓ ${rows.length} guías cargadas desde ${esc(f.name)}`; }
+          else $("saGuiasMsg").innerHTML = "⚠ No se encontraron filas válidas.";
+        } catch(err) { $("saGuiasMsg").innerHTML = "⚠ Error leyendo el archivo: " + err.message; }
+      };
+      fr.readAsText(f);
+    });
+
+    // ===== Wire up =====
+    $("btnLogin").addEventListener("click", doLogin);
+    $("inPassword").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+    $("btnLogout").addEventListener("click", doLogout);
+    $("btnBack").addEventListener("click", () => {
+      if (!session) return mostrar("vLogin");
+      if (session.rol === "supervisor") mostrar("vSupervisor");
+      else if (session.rol === "conductor") { renderConductor(); mostrar("vConductor"); }
+      else if (session.rol === "cliente") mostrar("vCliente");
+    });
+
+    // ===== Init =====
+    applyBrand();
+    mostrar("vLogin");
+  </script>
+</body>
+</html>
