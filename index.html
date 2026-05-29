@@ -517,15 +517,15 @@
         password: "bemau2026"
       },
       guias: [
-        { numero_guia: "EQ0034297", destinatario: "ZAMBRANO OSORIO JOSE ANTONIO", direccion: "AV. ELOY ALFARO N32-150", valor: 100, bultos: 2, peso_kg: 15.5, conductor_idx: 0 },
-        { numero_guia: "ES0031566", destinatario: "ZAMBRANO OSORIO KARINA MARIANELA", direccion: "AV. CHONE S/N", valor: 75, bultos: 3, peso_kg: 22.5, conductor_idx: 2 },
-        { numero_guia: "ES0031563", destinatario: "MEZA GARCIA GENITH MAGDALENA", direccion: "AV. CHONE KM 38", valor: 50, bultos: 1, peso_kg: 8.0, conductor_idx: 1 },
-        { numero_guia: "ES0031564", destinatario: "LLANTI S.A.S.", direccion: "AV. CARMELO ZAMBRANO ENTRADA A JIPIJAPA", valor: 100, bultos: 4, peso_kg: 28.0, conductor_idx: 1 },
+        { numero_guia: "EQ0034297", destinatario: "MEZA GARCIA GENITH MAGDALENA", direccion: "AV. CHONE KM 38", valor: 50, bultos: 2, peso_kg: 12.5, conductor_idx: 0 },
+        { numero_guia: "ES0031563", destinatario: "ZAMBRANO OSORIO KARINA MARIANELA", direccion: "AV. CHONE S/N", valor: 75, bultos: 3, peso_kg: 21.0, conductor_idx: 0 },
+        { numero_guia: "ES0031570", destinatario: "LLANTI S.A.S.", direccion: "EL CARMEN / AV. CHONE KM 38 Y SANTA ANA", valor: 100, bultos: 4, peso_kg: 33.5, conductor_idx: 0 },
+        { numero_guia: "ES0031564", destinatario: "LLANTI S.A.S.", direccion: "EL CARMEN / AV. CHONE KM 38 Y SANTA ANA", valor: 100, bultos: 5, peso_kg: 40.0, conductor_idx: 1 },
+        { numero_guia: "ES0031571", destinatario: "MEZA GARCIA GENITH MAGDALENA", direccion: "AV. CHONE KM 38", valor: 50, bultos: 2, peso_kg: 11.0, conductor_idx: 1 },
+        { numero_guia: "ES0031572", destinatario: "ZAMBRANO OSORIO KARINA MARIANELA", direccion: "AV. CHONE S/N", valor: 75, bultos: 3, peso_kg: 19.5, conductor_idx: 1 },
         { numero_guia: "ES0031565", destinatario: "MEZA GARCIA GENITH MAGDALENA", direccion: "AV. CHONE KM 38", valor: 50, bultos: 1, peso_kg: 8.0, conductor_idx: 2 },
-        { numero_guia: "ES0031570", destinatario: "LLANTI S.A.S.", direccion: "AV. CARMELO ZAMBRANO ENTRADA A JIPIJAPA", valor: 100, bultos: 4, peso_kg: 28.0, conductor_idx: 1 },
-        { numero_guia: "ES0031566B", destinatario: "ZAMBRANO OSORIO KARINA MARIANELA", direccion: "AV. CHONE S/N", valor: 75, bultos: 3, peso_kg: 22.5, conductor_idx: 0 },
-        { numero_guia: "ES0031567", destinatario: "LLANTI S.A.S.", direccion: "AV. CARMELO ZAMBRANO ENTRADA A JIPIJAPA", valor: 100, bultos: 4, peso_kg: 28.0, conductor_idx: 0 },
-        { numero_guia: "ES0031571", destinatario: "MEZA GARCIA GENITH MAGDALENA", direccion: "AV. CHONE KM 38", valor: 75, bultos: 2, peso_kg: 15.0, conductor_idx: 2 }
+        { numero_guia: "ES0031566", destinatario: "ZAMBRANO OSORIO KARINA MARIANELA", direccion: "AV. CHONE S/N", valor: 75, bultos: 3, peso_kg: 22.5, conductor_idx: 2 },
+        { numero_guia: "ES0031567", destinatario: "LLANTI S.A.S.", direccion: "EL CARMEN / AV. CHONE KM 38 Y SANTA ANA", valor: 100, bultos: 4, peso_kg: 31.0, conductor_idx: 2 }
       ]
     };
 
@@ -555,8 +555,17 @@
     const esc = s => String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 
     function loadConfig() {
-      try { const c = JSON.parse(localStorage.getItem("hicargps_demo_config")); return c && c.empresa ? c : JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
-      catch(e) { return JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+      try {
+        const c = JSON.parse(localStorage.getItem("hicargps_demo_config"));
+        if (c && c.empresa) {
+          // Guías y conductores son ESTÁNDAR fijas (deben coincidir con Postgres) → siempre desde DEFAULT,
+          // así una config vieja cacheada no reintroduce guías inexistentes (p.ej. ES0031566B).
+          c.guias = JSON.parse(JSON.stringify(DEFAULT_CONFIG.guias));
+          c.conductores = JSON.parse(JSON.stringify(DEFAULT_CONFIG.conductores));
+          return c;
+        }
+        return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      } catch(e) { return JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
     }
     function saveConfig() { localStorage.setItem("hicargps_demo_config", JSON.stringify(CONFIG)); applyBrand(); }
     function resetConfig() { CONFIG = JSON.parse(JSON.stringify(DEFAULT_CONFIG)); saveConfig(); resetState(); }
