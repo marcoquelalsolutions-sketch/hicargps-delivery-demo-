@@ -189,9 +189,26 @@
     .sa-grid input, .sa-grid select { width: 100%; padding: 8px 10px; border: 1px solid var(--bx-line); border-radius: 8px; font-size: .82rem; }
     .sa-grid input[type="color"] { padding: 2px; height: 36px; }
     .sa-full { grid-column: 1 / -1; }
-    .sa-cond-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr auto; gap: 6px; padding: 8px; background: #f8fafc; border-radius: 8px; margin-bottom: 6px; }
-    .sa-cond-row input { padding: 6px 8px; border: 1px solid var(--bx-line); border-radius: 6px; font-size: .76rem; }
-    .sa-cond-row button { background: var(--bx-accent); color: #fff; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; align-self: center; }
+    /* Conductores como tarjetas etiquetadas (responsive) */
+    .sa-cond-card { background: #f8fafc; border: 1px solid var(--bx-line); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+    .sa-cond-card .hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .sa-cond-card .hd b { color: var(--bx-primary); font-size: .8rem; }
+    .sa-cond-card .hd button { background: var(--bx-accent); color: #fff; border: none; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-weight: 800; }
+    .sa-cond-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+    .sa-cond-fields label { font-size: .66rem; font-weight: 700; color: var(--bx-muted); display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: .3px; }
+    .sa-cond-fields input { width: 100%; padding: 8px 9px; border: 1px solid var(--bx-line); border-radius: 6px; font-size: .8rem; }
+    /* Gate de acceso SuperAdmin */
+    .sa-gate-bg { position: fixed; inset: 0; background: rgba(11,42,74,.78); z-index: 120; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .sa-gate { background: #fff; border-radius: 14px; padding: 22px; max-width: 360px; width: 100%; text-align: center; box-shadow: 0 18px 50px rgba(0,0,0,.3); }
+    .sa-gate h3 { margin: 6px 0 2px; color: var(--bx-primary); }
+    .sa-gate p { margin: 0 0 14px; font-size: .8rem; color: var(--bx-muted); }
+    /* Responsive móvil/tablet */
+    @media (max-width: 640px) {
+      .sa-grid { grid-template-columns: 1fr; }
+      .sa-grid input, .sa-grid select, .sa-cond-fields input { font-size: 16px; }
+      .sa-head h2 { font-size: .95rem; }
+      .sa-actions { flex-wrap: wrap; }
+    }
     .sa-guide { background: linear-gradient(180deg, #fff, #fafbfd); border-radius: 14px; padding: 14px; border: 1px solid var(--bx-line); position: sticky; top: 12px; }
     .sa-guide h3 { margin: 0 0 4px; font-size: .85rem; color: var(--bx-primary); font-weight: 800; }
     .sa-guide .timer { background: var(--bx-accent); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: .7rem; font-weight: 800; display: inline-block; margin-bottom: 8px; }
@@ -328,11 +345,9 @@
         <div class="bx-meta">Tablero de Control y Cobranza Corporativa</div>
       </div>
       <div class="bx-card">
-        <div style="font-weight: 800; color: var(--bx-primary); margin-bottom: 6px;">📥 Cargar manifiesto</div>
-        <p class="bx-meta mb-2">Sube tu Excel con las guías del día. (O usa el botón de abajo para precargar el ejemplo).</p>
-        <input class="form-control mb-2" type="file" id="inExcel" accept=".xlsx,.xls,.csv" />
-        <button class="bx-btn" id="btnSubirExcel">Cargar y procesar</button>
-        <button class="bx-btn secondary mt-2" id="btnPrecargar" style="background: var(--bx-green);">⚡ Precargar 9 guías del ejemplo (rápido para demo)</button>
+        <div style="font-weight: 800; color: var(--bx-primary); margin-bottom: 6px;">📥 Manifiesto del día</div>
+        <p class="bx-meta mb-2">El demo ya trae las <b>9 guías de ejemplo</b> listas, asignadas a los conductores. Un solo clic y arrancas.</p>
+        <button class="bx-btn" id="btnPrecargar" style="background: var(--bx-green);">⚡ Cargar las 9 guías del demo</button>
         <div class="bx-meta mt-2" id="ingestaMsg"></div>
       </div>
       <div class="bx-card">
@@ -344,9 +359,8 @@
         <div style="font-weight: 800; color: var(--bx-primary); margin-bottom: 4px;">🏢 Cliente Corporativo</div>
         <div id="cxcCliente" style="font-size: 1.1rem; font-weight: 800; color: var(--bx-primary); margin-bottom: 6px;">—</div>
         <div class="bx-meta" id="cxcConsolidada">—</div>
-        <button class="bx-btn mt-3" id="btnVerReporte" style="background: var(--bx-primary);">📥 Ver reporte profesional CxC</button>
-        <button class="bx-btn secondary mt-2" id="btnDispararCobranza" style="background: var(--bx-accent);">🤖 Disparar cobranza IA (W2)</button>
-        <div class="bx-meta text-center mt-2" style="font-size: .72rem;">Factura única · IVA 15% · 10% pronto pago 24h</div>
+        <button class="bx-btn mt-3" id="btnCargarLiquidacion" style="background: var(--bx-primary);">📋 Cargar Liquidación CxC</button>
+        <div class="bx-meta text-center mt-2" style="font-size: .72rem;">Documento auditable · IVA 15% · 10% pronto pago 24h · al cargar, revisa y pulsa <b>Enviar liquidación al cliente</b></div>
       </div>
       <div class="bx-card">
         <div style="font-weight: 800; color: var(--bx-primary); margin-bottom: 8px;">🚚 Avance por conductor</div>
@@ -386,69 +400,41 @@
     <!-- ===== SUPER ADMIN ===== -->
     <div id="vSuperAdmin" class="hidden">
       <div class="sa-head">
-        <h2>🛠 SuperAdmin · Configurar Demo Modular para tu cliente</h2>
-        <p>Edita los datos del prospect que vas a presentar. Todo se refleja en login + actas + emails + reportes. <span class="saved-pill" id="savedPill">✓ Guardado</span></p>
+        <h2>🛠 SuperAdmin · Preparar la demo en 30 segundos</h2>
+        <p>Solo cambia <b>marca</b> (nombre + colores) y el <b>correo del prospecto</b>. Lo demás ya está listo. <span class="saved-pill" id="savedPill">✓ Guardado</span></p>
       </div>
       <div style="background:#fff; border-radius: 0 0 14px 14px; padding: 14px; border: 1px solid var(--bx-line); border-top: none; margin-bottom: 16px;">
         <div class="sa-wrap">
           <!-- Forms column -->
           <div>
-            <!-- Empresa -->
+            <!-- 1 · Marca -->
             <div class="sa-section">
-              <h3>🏷️ 1 · Empresa de delivery (tu prospect)</h3>
+              <h3>🎨 1 · Marca del cliente</h3>
+              <p class="bx-meta" style="margin:-4px 0 10px; font-size:.75rem;">Lo único visual que cambia por cliente. Se aplica al instante en login, app y documentos.</p>
               <div class="sa-grid">
-                <div><label>Nombre comercial</label><input id="saEmpresaNombre" type="text" /></div>
-                <div><label>Tagline</label><input id="saEmpresaTagline" type="text" /></div>
-                <div><label>RUC</label><input id="saEmpresaRuc" type="text" /></div>
-                <div><label>Email contacto</label><input id="saEmpresaEmail" type="email" /></div>
+                <div class="sa-full"><label>Nombre comercial del cliente</label><input id="saEmpresaNombre" type="text" placeholder="Ej. LOGÍSTICA ANDINA" /></div>
                 <div><label>Color primario</label><input id="saColorPrimary" type="color" /></div>
                 <div><label>Color acento</label><input id="saColorAccent" type="color" /></div>
               </div>
             </div>
-            <!-- Cliente Corporativo -->
+            <!-- 2 · Contacto demo -->
             <div class="sa-section">
-              <h3>🏢 2 · Cliente corporativo del demo</h3>
+              <h3>📧 2 · Contacto que recibirá la demo</h3>
+              <p class="bx-meta" style="margin:-4px 0 10px; font-size:.75rem;">A este correo llegan <b>de verdad</b> el acta de entrega, la liquidación CxC y los links. Pon el correo de tu prospecto para que viva la experiencia.</p>
               <div class="sa-grid">
-                <div><label>Razón social / Nombre</label><input id="saClienteNombre" type="text" /></div>
-                <div><label>RUC</label><input id="saClienteRuc" type="text" /></div>
-                <div><label>Contacto</label><input id="saClienteContacto" type="text" /></div>
-                <div><label>Email</label><input id="saClienteEmail" type="email" /></div>
-                <div><label>Teléfono</label><input id="saClienteTelefono" type="text" /></div>
+                <div><label>Nombre del contacto</label><input id="saCliUserNombre" type="text" placeholder="Ej. Eduardo Benavides" /></div>
+                <div><label>Email para notificaciones</label><input id="saClienteEmail" type="email" placeholder="prospecto@empresa.com" /></div>
+                <div class="sa-full"><label>Teléfono / WhatsApp (opcional)</label><input id="saClienteTelefono" type="text" placeholder="+593 ..." /></div>
               </div>
             </div>
-            <!-- Supervisor -->
-            <div class="sa-section">
-              <h3>👔 3 · Supervisor (jefe logístico)</h3>
-              <div class="sa-grid">
-                <div><label>Nombre</label><input id="saSupNombre" type="text" /></div>
-                <div><label>Email</label><input id="saSupEmail" type="email" /></div>
-                <div><label>Teléfono</label><input id="saSupTel" type="text" /></div>
-                <div><label>Usuario login</label><input id="saSupUser" type="text" /></div>
+            <!-- 3 · Listo -->
+            <div class="sa-section" style="background:#f0fdf4; border-color:#bbf7d0;">
+              <h3 style="color:#166534;">✅ 3 · Lo demás ya está listo</h3>
+              <p class="bx-meta" style="margin:0; font-size:.78rem; line-height:1.6;">No cargas ningún Excel ni CSV. El demo ya trae <b>9 guías de ejemplo</b>, <b>3 conductores</b>, el <b>supervisor</b> y el <b>portal del cliente</b> preconfigurados — estándar para cualquier cliente.</p>
+              <div style="margin-top:10px; background:#fff; border:1px solid var(--bx-line); border-radius:10px; padding:10px 12px; font-size:.76rem; color:var(--bx-muted);">
+                <b style="color:var(--bx-primary);">Accesos de la demo</b> · contraseña <b>bemau2026</b><br>
+                👔 supervisor &nbsp;·&nbsp; 🚚 dludena / dgarcia / mgonzalez &nbsp;·&nbsp; 🏢 eduardo
               </div>
-            </div>
-            <!-- Conductores -->
-            <div class="sa-section">
-              <h3>🚚 4 · Equipo de conductores <button id="btnAddCond" style="margin-left:auto; background: var(--bx-primary); color:#fff; border:none; padding: 4px 10px; border-radius: 6px; font-size:.7rem; cursor:pointer;">+ Añadir</button></h3>
-              <div id="saConductores"></div>
-            </div>
-            <!-- Cliente App User -->
-            <div class="sa-section">
-              <h3>🏢 5 · Usuario del cliente para portal</h3>
-              <div class="sa-grid">
-                <div><label>Nombre (saludo)</label><input id="saCliUserNombre" type="text" /></div>
-                <div><label>Usuario login</label><input id="saCliUserUser" type="text" /></div>
-              </div>
-            </div>
-            <!-- Excel / Guías -->
-            <div class="sa-section">
-              <h3>📊 6 · Guías de ejemplo para el demo</h3>
-              <p class="bx-meta" style="margin: 0 0 10px;">Por defecto carga 9 guías reales (Almacenes Japón). Podés también subir tu propio Excel.</p>
-              <div style="display:flex; gap:8px; flex-wrap: wrap;">
-                <button class="bx-btn secondary" id="saBtnUsarEjemplo" style="background: var(--bx-green); width:auto; padding: 10px 14px; font-size:.85rem;">⚡ Usar 9 guías de ejemplo</button>
-                <button class="bx-btn secondary" id="saBtnDescargarPlantilla" style="background: var(--bx-blue2); width:auto; padding: 10px 14px; font-size:.85rem;">⬇ Descargar plantilla CSV</button>
-                <input type="file" id="saInExcel" accept=".xlsx,.xls,.csv" style="flex:1; min-width:200px; padding: 8px;" />
-              </div>
-              <div class="bx-meta mt-2" id="saGuiasMsg">9 guías de ejemplo precargadas</div>
             </div>
           </div>
           <!-- Sidebar guide -->
@@ -458,15 +444,12 @@
               <div class="timer">⏱ 5–10 minutos</div>
               <p class="bx-meta" style="font-size:.75rem; margin: 6px 0 10px;">Pasos lógicos para mostrar toda la cadena al cliente y generar el efecto WOW:</p>
               <ol>
-                <li><b>Login Supervisor</b> → muestra tablero vacío <span class="t">15s</span></li>
-                <li><b>Subir Excel</b> → 9 guías aparecen <span class="t">30s</span></li>
-                <li><b>Logout, Login Conductor</b> → ve su ruta <span class="t">30s</span></li>
-                <li><b>Iniciar ruta + entregar</b> con foto+firma <span class="t">2 min</span></li>
-                <li><b>Ver acta generada</b> → email simulado <span class="t">30s</span></li>
-                <li><b>Login Cliente</b> → dashboard + CxP <span class="t">1 min</span></li>
-                <li><b>Descargar PDF consolidado</b> → factura única <span class="t">30s</span></li>
+                <li><b>Login Supervisor</b> (supervisor) → tablero + 9 guías <span class="t">20s</span></li>
+                <li><b>Login Conductor</b> (dludena) → su ruta <span class="t">20s</span></li>
+                <li><b>Entregar</b> foto + firma → acta real al correo <span class="t">2 min</span></li>
+                <li><b>Login Cliente</b> (eduardo) → dashboard + acta <span class="t">1 min</span></li>
+                <li><b>Supervisor → Cargar Liquidación → Enviar</b> → cobro real al correo <span class="t">1 min</span></li>
                 <li><b>Bot Telegram</b> @hicargps_delivery_bot → consultas IA <span class="t">2 min</span></li>
-                <li><b>Cierre</b> con ROI + propuesta <span class="t">1 min</span></li>
               </ol>
               <div class="sa-actions">
                 <button class="reset" id="saBtnReset" title="Volver a datos de demo Bemauexpress">↻ Reset</button>
@@ -493,6 +476,7 @@
       <div class="bx-modal-foot">
         <button class="bx-btn secondary" style="background: var(--bx-muted); width:auto; padding: 8px 16px;" onclick="closeModal()">Cerrar</button>
         <button class="bx-btn" id="modalPrint" style="width:auto; padding: 8px 16px;">🖨 Imprimir / Guardar PDF</button>
+        <button class="bx-btn" id="modalEnviar" style="width:auto; padding: 8px 16px; background: var(--bx-green); display:none;">📧 Enviar al cliente</button>
       </div>
     </div>
   </div>
@@ -512,7 +496,7 @@
         nombre: "ALMACENES JAPON",
         ruc: "0991234567001",
         contacto: "Eduardo Benavides",
-        email: "rodsosleo@hotmail.com",
+        email: "marcoalejandroq@hotmail.com",
         telefono: "+593 98 588 8882"
       },
       supervisor: {
@@ -544,6 +528,17 @@
         { numero_guia: "ES0031571", destinatario: "MEZA GARCIA GENITH MAGDALENA", direccion: "AV. CHONE KM 38", valor: 75, bultos: 2, peso_kg: 15.0, conductor_idx: 2 }
       ]
     };
+
+    // ===== Conexión n8n (backend real) =====
+    const API = "https://curson8n-n8n.ohx85l.easypanel.host/webhook";
+    const SUPERADMIN_PASS = "admin2026";   // contraseña independiente del SuperAdmin
+    async function apiPost(path, body) {
+      try {
+        const r = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+        return await r.json().catch(() => ({ ok: true }));
+      } catch (e) { console.warn("n8n no alcanzable (" + path + ") → modo simulado", e); return null; }
+    }
+    const actaUrl = guia => API + "/bemau-ver-acta?g=" + encodeURIComponent(guia);
 
     // ===== Estado de runtime =====
     let CONFIG = loadConfig();
@@ -739,10 +734,20 @@
       };
       fr.readAsDataURL(f);
     });
-    $("btnConfirmar").addEventListener("click", () => {
+    $("btnConfirmar").addEventListener("click", async () => {
       if (!fotoBase64) { $("capMsg").textContent = "Captura una foto primero."; return; }
       if (!signaturePad || signaturePad.isEmpty()) { $("capMsg").textContent = "Falta la firma del receptor."; return; }
       const firmaBase64 = signaturePad.toDataURL("image/png");
+      const btn = $("btnConfirmar");
+      btn.disabled = true;
+      $("capMsg").style.color = "var(--bx-muted)";
+      $("capMsg").textContent = "📡 Registrando entrega y notificando al cliente…";
+      // Dispara W1 real (Cloudinary + UPDATE Postgres + Gmail acta + Telegram). Si n8n no responde, sigue en modo local.
+      const resp = await apiPost("/bemauexpress-entrega", {
+        numero_guia: currentGuia.numero_guia,
+        foto_base64: fotoBase64,
+        firma_base64: firmaBase64
+      });
       STATE.guias_state[currentGuia.numero_guia] = {
         estado: "entregado",
         foto_url: fotoBase64,
@@ -750,9 +755,14 @@
         fecha_entrega: new Date().toISOString()
       };
       saveState();
-      // Generar acta y guardar
+      // Generar acta local (respaldo visual)
       lastActaHtml = generarActa(currentGuia, fotoBase64, firmaBase64);
-      $("exitoMsg").textContent = `Guía ${currentGuia.numero_guia} entregada a ${currentGuia.destinatario}.`;
+      $("capMsg").style.color = "var(--bx-accent)";
+      $("capMsg").textContent = "";
+      btn.disabled = false;
+      $("exitoMsg").textContent = resp
+        ? `Guía ${currentGuia.numero_guia} entregada a ${currentGuia.destinatario}. Acta enviada al cliente por correo.`
+        : `Guía ${currentGuia.numero_guia} entregada a ${currentGuia.destinatario}. (sin conexión n8n · registro local)`;
       mostrar("vExito");
     });
     $("btnVerActa")?.addEventListener("click", () => openModal("📄 Acta de entrega corporativa", lastActaHtml));
@@ -797,14 +807,29 @@
       $("ingestaMsg").innerHTML = "✓ <b>9 guías precargadas</b> y asignadas a conductores. Listo para la demo.";
       renderSupervisor();
     });
-    $("btnSubirExcel")?.addEventListener("click", () => {
-      const f = $("inExcel").files[0];
-      if (!f) { $("ingestaMsg").textContent = "Selecciona un archivo primero."; return; }
-      $("ingestaMsg").textContent = "📊 Procesando Excel... (en GitHub Pages demo, las guías se cargan del config — sube tu Excel desde el SuperAdmin para reemplazar)";
-      setTimeout(() => { $("ingestaMsg").innerHTML = `✓ Archivo "${esc(f.name)}" leído. <b>${CONFIG.guias.length} guías</b> activas.`; renderSupervisor(); }, 600);
+    $("btnCargarLiquidacion")?.addEventListener("click", () => {
+      const all = CONFIG.guias.map(g => Object.assign({}, g, STATE.guias_state[g.numero_guia] || { estado: "asignado" }));
+      const hayEntregadas = all.some(g => g.estado === "entregado");
+      openModal("📋 Liquidación CxC · documento auditable", generarReporteCxC(),
+        hayEntregadas ? { sendLabel: "📧 Enviar liquidación al cliente", onSend: enviarLiquidacion } : null);
     });
-    $("btnVerReporte")?.addEventListener("click", () => openModal("📄 Reporte CxC consolidado · Factura única", generarReporteCxC()));
-    $("btnDispararCobranza")?.addEventListener("click", () => openModal("🤖 Cobranza con IA · Borrador generado", generarBorradorCobranza()));
+    async function enviarLiquidacion() {
+      const btn = $("modalEnviar");
+      if (!confirm(`¿Enviar la liquidación consolidada al cliente (${CONFIG.cliente.email})?\n\nSe dispara el W2: el correo sale de verdad y las guías entregadas pasan a CERRADO.`)) return;
+      btn.disabled = true; btn.textContent = "Enviando…";
+      const resp = await apiPost("/bemauexpress-cxc", {});
+      if (resp) {
+        // Espeja el "Marcar Cerrado" de W2: entregado → cerrado
+        Object.keys(STATE.guias_state).forEach(g => { if (STATE.guias_state[g].estado === "entregado") STATE.guias_state[g].estado = "cerrado"; });
+        saveState(); renderSupervisor();
+        btn.textContent = "✓ Enviada";
+        alert(`✓ Liquidación enviada a ${CONFIG.cliente.email}. Las guías entregadas quedaron CERRADAS y se notificó al jefe por Telegram.`);
+        closeModal();
+      } else {
+        btn.disabled = false; btn.textContent = "📧 Enviar liquidación al cliente";
+        alert("⚠ No se pudo conectar con n8n. Verifica el backend e intenta de nuevo.");
+      }
+    }
 
     // ===== CLIENTE =====
     function renderCliente() {
@@ -843,7 +868,7 @@
         }).join("");
         const cond = CONFIG.conductores[g.conductor_idx] || {};
         const ver = (g.estado === "entregado" || g.estado === "cerrado")
-          ? `<a class="cli-ver" data-acta="${esc(g.numero_guia)}">🔍 Ver detalle de entrega ›</a>`
+          ? `<a class="cli-ver" href="${actaUrl(g.numero_guia)}" target="_blank" rel="noopener">🔍 Ver acta de entrega ›</a>`
           : `<span style="color:#94a3b8; font-size:.72rem;">⏳ Pendiente</span>`;
         return `<div class="cli-card">
           <div class="cli-card-top">
@@ -861,14 +886,7 @@
           </div>
         </div>`;
       }).join("") : '<div class="bx-empty">Sin pedidos en este filtro.</div>';
-      document.querySelectorAll("#cliLista .cli-ver").forEach(el => {
-        el.addEventListener("click", () => {
-          const g = CONFIG.guias.find(x => x.numero_guia === el.dataset.acta);
-          const st = STATE.guias_state[el.dataset.acta] || {};
-          const html = generarActa(g, st.foto_url, st.firma_url);
-          openModal(`📄 Acta · ${el.dataset.acta}`, html);
-        });
-      });
+      // Los enlaces "Ver acta" abren el acta real servida por n8n (/bemau-ver-acta) en pestaña nueva.
     }
     document.querySelectorAll(".cli-kpi").forEach(k => k.addEventListener("click", () => {
       cliFilter = k.dataset.state;
@@ -961,17 +979,18 @@ ${fotoUrl || firmaUrl ? `<tr><td style='padding:14px 30px 4px;'><div style='font
       const vence = new Date(fecha.getTime() + 30*86400000);
       const f24 = new Date(fecha.getTime() + 24*3600000);
       const f24Str = fmt(f24) + ' ' + String(f24.getHours()).padStart(2,'0') + ':' + String(f24.getMinutes()).padStart(2,'0');
-      const invoiceNum = `F-${fecha.getFullYear()}${String(fecha.getMonth()+1).padStart(2,'0')}${String(fecha.getDate()).padStart(2,'0')}-001`;
+      const invoiceNum = `LIQ-${fecha.getFullYear()}${String(fecha.getMonth()+1).padStart(2,'0')}${String(fecha.getDate()).padStart(2,'0')}-001`;
+      const selloEC = fecha.toLocaleString("es-EC", { hour12: false });
       if (!ent.length) return `<div style="padding:60px; text-align:center; font-family:Arial,sans-serif;"><div style="font-size:54px;">📄</div><h2 style="color:${emp.color_primary};">Sin cuentas por cobrar</h2><p style="color:#64748b;">Aún no hay entregas confirmadas para facturar.</p></div>`;
       const filas = ent.map((r,i) => {
         const c = CONFIG.conductores[r.conductor_idx] || {};
-        return `<tr><td style="text-align:center;">${i+1}</td><td><strong style="color:${emp.color_primary};">${esc(r.numero_guia)}</strong></td><td style="color:#64748b;">${fechaStr}</td><td>${esc(r.destinatario)}</td><td style="text-align:center;">${r.bultos||'-'}</td><td style="text-align:center;">${r.peso_kg||'-'} kg</td><td style="color:#475569; font-size:11px;">${esc(c.nombre||'-')}<br>${esc(c.placa||'')}</td><td style="text-align:right; font-weight:700;">${money(r.valor)}</td></tr>`;
+        return `<tr><td style="text-align:center;">${i+1}</td><td><a href="${actaUrl(r.numero_guia)}" target="_blank" rel="noopener" style="color:${emp.color_accent};font-weight:800;text-decoration:underline;">${esc(r.numero_guia)}</a></td><td style="color:#64748b;">${fechaStr}</td><td>${esc(r.destinatario)}</td><td style="text-align:center;">${r.bultos||'-'}</td><td style="text-align:center;">${r.peso_kg||'-'} kg</td><td style="color:#475569; font-size:11px;">${esc(c.nombre||'-')}<br>${esc(c.placa||'')}</td><td style="text-align:center;"><a href="${actaUrl(r.numero_guia)}" target="_blank" rel="noopener" style="display:inline-block;background:${emp.color_primary};color:#fff;font-size:10px;font-weight:800;padding:4px 9px;border-radius:8px;text-decoration:none;white-space:nowrap;">📄 Ver acta</a></td><td style="text-align:right; font-weight:700;">${money(r.valor)}</td></tr>`;
       }).join("");
       return `<div style="font-family:Arial,Helvetica,sans-serif; background:#eef2f7; padding:24px;">
 <div style="max-width:920px; margin:0 auto; background:#fff; border-radius:14px; box-shadow:0 10px 30px rgba(10,43,107,.10); overflow:hidden;">
 <div style="background:linear-gradient(135deg, ${emp.color_primary}, ${darken(emp.color_primary,15)}); color:#fff; padding:24px 32px; display:flex; justify-content:space-between; align-items:center;">
 <div><div style="font-size:24px; letter-spacing:3px; color:${emp.color_accent}; font-weight:800;">${esc(emp.nombre)}</div><div style="font-size:11px; color:#9fb3c8; letter-spacing:1px;">Trazabilidad &amp; Cobranzas</div></div>
-<div style="text-align:right;"><h1 style="margin:0; font-size:22px;">REPORTE CxC · FACTURA ÚNICA</h1><p style="margin:4px 0 0; font-size:11px; color:#9fb3c8; letter-spacing:1px;">${invoiceNum}</p></div>
+<div style="text-align:right;"><h1 style="margin:0; font-size:22px;">LIQUIDACIÓN DE SERVICIOS · CxC</h1><p style="margin:4px 0 0; font-size:11px; color:#9fb3c8; letter-spacing:1px;">${invoiceNum} · Documento consolidado auditable</p></div>
 </div>
 <div style="padding:28px 32px;">
 <div style="display:flex; gap:24px; margin-bottom:20px; flex-wrap:wrap;">
@@ -980,7 +999,7 @@ ${fotoUrl || firmaUrl ? `<tr><td style='padding:14px 30px 4px;'><div style='font
 <div style="flex:1; min-width:240px; text-align:right;"><div style="font-size:10px; color:${emp.color_accent}; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:4px;">Fechas</div><p style="margin:1px 0; font-size:12px; color:#475569;"><strong>Emisión:</strong> ${fechaStr}</p><p style="margin:1px 0; font-size:12px; color:#475569;"><strong>Vence:</strong> ${fmt(vence)}</p><p style="margin:1px 0; font-size:12px; color:${emp.color_accent}; font-weight:700;">Pronto pago 10%: hasta ${f24Str}</p></div>
 </div>
 <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:8px;">
-<thead><tr style="background:${emp.color_primary}; color:#fff;"><th style="padding:9px 8px; text-align:left;">#</th><th style="padding:9px 8px; text-align:left;">Guía</th><th style="padding:9px 8px; text-align:left;">Entrega</th><th style="padding:9px 8px; text-align:left;">Destinatario</th><th style="padding:9px 8px;">Bultos</th><th style="padding:9px 8px;">Peso</th><th style="padding:9px 8px;">Conductor</th><th style="padding:9px 8px; text-align:right;">Valor</th></tr></thead>
+<thead><tr style="background:${emp.color_primary}; color:#fff;"><th style="padding:9px 8px; text-align:left;">#</th><th style="padding:9px 8px; text-align:left;">Guía</th><th style="padding:9px 8px; text-align:left;">Entrega</th><th style="padding:9px 8px; text-align:left;">Destinatario</th><th style="padding:9px 8px;">Bultos</th><th style="padding:9px 8px;">Peso</th><th style="padding:9px 8px;">Conductor</th><th style="padding:9px 8px;">Evidencia</th><th style="padding:9px 8px; text-align:right;">Valor</th></tr></thead>
 <tbody>${filas}</tbody>
 </table>
 <div style="display:flex; justify-content:flex-end; margin-top:10px;"><div style="min-width:280px; background:${emp.color_primary}; color:#fff; border-radius:10px; padding:12px 18px; font-size:13px;">
@@ -990,6 +1009,7 @@ ${fotoUrl || firmaUrl ? `<tr><td style='padding:14px 30px 4px;'><div style='font
 </div></div>
 <div style="background:linear-gradient(90deg,#FFEBEE,#FED7DA,#FFEBEE); border-left:4px solid ${emp.color_accent}; padding:14px 18px; border-radius:8px; margin-top:14px; font-size:13px; color:#B32B36;">💸 <strong>Descuento 10% por pronto pago</strong> — si pagas hasta el <strong>${f24Str}</strong>, abonas <b style="color:${emp.color_primary}; font-size:20px;">${money(totalPP)}</b> (ahorras ${money(dcto)}).</div>
 <div style="background:#f1f5f9; border-radius:10px; padding:14px 18px; margin-top:14px; font-size:12px; color:#475569;"><strong style="color:${emp.color_primary};">Datos para pago:</strong><br>Banco Pichincha · Cta Cte 2100456789 · ${esc(emp.nombre)} · RUC ${esc(emp.ruc)}<br>Banco Guayaquil · Cta Cte 0023456789 · ${esc(emp.nombre)}<br><em>Enviar comprobante a ${esc(emp.email)}</em></div>
+<div style="margin:14px 0 0; background:#0f172a; color:#cbd5e1; border-radius:10px; padding:12px 18px; font-size:11px; line-height:1.7;"><strong style="color:#fff; letter-spacing:1px; text-transform:uppercase; font-size:10px;">🔐 Sello de auditoría</strong><br>Documento Nº <strong style="color:#fff;">${invoiceNum}</strong> · Conciliación de <strong style="color:#fff;">${ent.length}</strong> guía(s) entregada(s) con evidencia foto + firma trazable.<br>Generado automáticamente: <strong style="color:#fff;">${selloEC} (EC)</strong> · Cada guía enlaza a su acta de entrega verificable.<br>Aprobación financiera del cliente sujeta a verificación de las actas individuales.</div>
 </div>
 <div style="padding:14px 32px 24px; font-size:10px; color:#94a3b8; text-align:center; border-top:1px solid #eef2f7;">Documento generado automáticamente · ${esc(emp.nombre)} · Powered by HI CAR GPS · Torre de Control IA</div>
 </div></div>`;
@@ -1021,7 +1041,7 @@ ${fotoUrl || firmaUrl ? `<tr><td style='padding:14px 30px 4px;'><div style='font
     }
 
     // ===== MODAL =====
-    function openModal(title, html) {
+    function openModal(title, html, opts) {
       $("modalTitle").textContent = title;
       const iframe = document.createElement("iframe");
       $("modalBody").innerHTML = "";
@@ -1031,6 +1051,16 @@ ${fotoUrl || firmaUrl ? `<tr><td style='padding:14px 30px 4px;'><div style='font
       iframe.contentDocument.close();
       $("modal").classList.remove("hidden");
       $("modalPrint").onclick = () => iframe.contentWindow.print();
+      const sendBtn = $("modalEnviar");
+      if (opts && opts.onSend) {
+        sendBtn.style.display = "";
+        sendBtn.disabled = false;
+        sendBtn.textContent = opts.sendLabel || "📧 Enviar al cliente";
+        sendBtn.onclick = opts.onSend;
+      } else {
+        sendBtn.style.display = "none";
+        sendBtn.onclick = null;
+      }
     }
     function closeModal() { $("modal").classList.add("hidden"); }
     window.closeModal = closeModal;
@@ -1038,121 +1068,72 @@ ${fotoUrl || firmaUrl ? `<tr><td style='padding:14px 30px 4px;'><div style='font
     // ===== SUPER ADMIN =====
     function fillSuperAdmin() {
       $("saEmpresaNombre").value = CONFIG.empresa.nombre;
-      $("saEmpresaTagline").value = CONFIG.empresa.tagline;
-      $("saEmpresaRuc").value = CONFIG.empresa.ruc;
-      $("saEmpresaEmail").value = CONFIG.empresa.email;
       $("saColorPrimary").value = CONFIG.empresa.color_primary;
       $("saColorAccent").value = CONFIG.empresa.color_accent;
-      $("saClienteNombre").value = CONFIG.cliente.nombre;
-      $("saClienteRuc").value = CONFIG.cliente.ruc;
-      $("saClienteContacto").value = CONFIG.cliente.contacto;
+      $("saCliUserNombre").value = CONFIG.cliente_user.nombre;
       $("saClienteEmail").value = CONFIG.cliente.email;
       $("saClienteTelefono").value = CONFIG.cliente.telefono;
-      $("saSupNombre").value = CONFIG.supervisor.nombre;
-      $("saSupEmail").value = CONFIG.supervisor.email;
-      $("saSupTel").value = CONFIG.supervisor.telefono;
-      $("saSupUser").value = CONFIG.supervisor.usuario;
-      $("saCliUserNombre").value = CONFIG.cliente_user.nombre;
-      $("saCliUserUser").value = CONFIG.cliente_user.usuario;
-      renderConductoresSA();
-    }
-    function renderConductoresSA() {
-      $("saConductores").innerHTML = CONFIG.conductores.map((c,i) => `
-        <div class="sa-cond-row" data-idx="${i}">
-          <input data-f="nombre" placeholder="Nombre" value="${esc(c.nombre)}" />
-          <input data-f="usuario" placeholder="usuario" value="${esc(c.usuario)}" />
-          <input data-f="cedula" placeholder="Cédula" value="${esc(c.cedula)}" />
-          <input data-f="telefono" placeholder="Tel" value="${esc(c.telefono)}" />
-          <input data-f="placa" placeholder="Placa" value="${esc(c.placa)}" />
-          <input data-f="vehiculo" placeholder="Vehículo" value="${esc(c.vehiculo)}" />
-          <input data-f="marca" placeholder="Marca" value="${esc(c.marca)}" />
-          <button data-rm="${i}" title="Eliminar">✕</button>
-        </div>`).join("");
-      document.querySelectorAll(".sa-cond-row [data-rm]").forEach(b => b.addEventListener("click", e => {
-        const idx = parseInt(e.target.dataset.rm);
-        CONFIG.conductores.splice(idx, 1);
-        renderConductoresSA();
-      }));
     }
     function readSuperAdmin() {
-      CONFIG.empresa.nombre = $("saEmpresaNombre").value.trim();
-      CONFIG.empresa.tagline = $("saEmpresaTagline").value.trim();
-      CONFIG.empresa.ruc = $("saEmpresaRuc").value.trim();
-      CONFIG.empresa.email = $("saEmpresaEmail").value.trim();
+      // Solo cambia marca + contacto de la demo. El resto (conductores, guías,
+      // supervisor, portal) queda estándar con los valores por defecto.
+      CONFIG.empresa.nombre = $("saEmpresaNombre").value.trim() || CONFIG.empresa.nombre;
       CONFIG.empresa.color_primary = $("saColorPrimary").value;
       CONFIG.empresa.color_accent = $("saColorAccent").value;
-      CONFIG.cliente.nombre = $("saClienteNombre").value.trim();
-      CONFIG.cliente.ruc = $("saClienteRuc").value.trim();
-      CONFIG.cliente.contacto = $("saClienteContacto").value.trim();
       CONFIG.cliente.email = $("saClienteEmail").value.trim();
       CONFIG.cliente.telefono = $("saClienteTelefono").value.trim();
-      CONFIG.supervisor.nombre = $("saSupNombre").value.trim();
-      CONFIG.supervisor.email = $("saSupEmail").value.trim();
-      CONFIG.supervisor.telefono = $("saSupTel").value.trim();
-      CONFIG.supervisor.usuario = $("saSupUser").value.trim().toLowerCase();
-      CONFIG.cliente_user.nombre = $("saCliUserNombre").value.trim();
-      CONFIG.cliente_user.usuario = $("saCliUserUser").value.trim().toLowerCase();
-      const conds = [];
-      document.querySelectorAll(".sa-cond-row").forEach(row => {
-        const c = {};
-        row.querySelectorAll("input[data-f]").forEach(i => c[i.dataset.f] = i.value.trim());
-        c.licencia = c.licencia || "Tipo C";
-        if (c.nombre) conds.push(c);
-      });
-      if (conds.length) CONFIG.conductores = conds;
+      const nom = $("saCliUserNombre").value.trim();
+      if (nom) { CONFIG.cliente_user.nombre = nom; CONFIG.cliente.contacto = nom; }
     }
-    $("btnSuperAdmin")?.addEventListener("click", () => { fillSuperAdmin(); mostrar("vSuperAdmin"); });
-    $("saBtnSave")?.addEventListener("click", () => {
+    function abrirSuperAdmin() { fillSuperAdmin(); mostrar("vSuperAdmin"); }
+    function pedirAccesoSuperAdmin() {
+      const bg = document.createElement("div");
+      bg.className = "sa-gate-bg";
+      bg.innerHTML = `<div class="sa-gate">
+        <div style="font-size:34px;">🔒</div>
+        <h3>Acceso SuperAdmin</h3>
+        <p>Panel de configuración. Ingresa la contraseña de administrador.</p>
+        <input id="saGatePass" type="password" class="form-control" placeholder="••••••••" autofocus />
+        <div id="saGateErr" class="bx-meta" style="color:var(--bx-accent); min-height:16px; font-size:.75rem;"></div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button class="bx-btn secondary" id="saGateCancel" style="background:#f1f5f9; color:var(--bx-muted);">Cancelar</button>
+          <button class="bx-btn" id="saGateOk">Ingresar</button>
+        </div>
+      </div>`;
+      document.body.appendChild(bg);
+      const inp = bg.querySelector("#saGatePass");
+      const close = () => bg.remove();
+      const tryOpen = () => {
+        if (inp.value === (CONFIG.superadmin_pass || SUPERADMIN_PASS)) { close(); abrirSuperAdmin(); }
+        else { bg.querySelector("#saGateErr").textContent = "Contraseña incorrecta."; inp.value = ""; inp.focus(); }
+      };
+      bg.querySelector("#saGateOk").onclick = tryOpen;
+      bg.querySelector("#saGateCancel").onclick = close;
+      inp.addEventListener("keydown", e => { if (e.key === "Enter") tryOpen(); });
+      bg.addEventListener("click", e => { if (e.target === bg) close(); });
+      setTimeout(() => inp.focus(), 50);
+    }
+    $("btnSuperAdmin")?.addEventListener("click", pedirAccesoSuperAdmin);
+    async function guardarDemoEmail() {
+      // Fija el correo real del prospecto en Postgres para que reciba acta + liquidación + links.
+      return await apiPost("/bemau-set-demo", { email: CONFIG.cliente.email });
+    }
+    $("saBtnSave")?.addEventListener("click", async () => {
       readSuperAdmin(); saveConfig();
+      await guardarDemoEmail();
       $("savedPill").classList.add("show");
       setTimeout(() => $("savedPill").classList.remove("show"), 2000);
     });
-    $("saBtnStart")?.addEventListener("click", () => {
+    $("saBtnStart")?.addEventListener("click", async () => {
       readSuperAdmin(); saveConfig(); resetState();
-      alert("✓ Demo lista. El cliente, conductores y empresa están actualizados en todos los formularios y documentos.");
+      const r = await guardarDemoEmail();
+      alert(r
+        ? `✓ Demo lista.\n\nMarca: ${CONFIG.empresa.nombre}\nLas notificaciones (acta, liquidación, links) llegarán a:\n${CONFIG.cliente.email || '— (sin correo)'}`
+        : "✓ Demo lista (marca y contacto guardados localmente).\n⚠ No se pudo conectar con n8n para fijar el correo real — revisa la conexión.");
       mostrar("vLogin");
     });
     $("saBtnReset")?.addEventListener("click", () => {
       if (confirm("¿Volver a los datos de demo Bemauexpress por defecto?")) { resetConfig(); fillSuperAdmin(); }
-    });
-    $("btnAddCond")?.addEventListener("click", () => {
-      readSuperAdmin();
-      CONFIG.conductores.push({ nombre: "NUEVO CONDUCTOR", usuario: "nuevo"+(CONFIG.conductores.length+1), cedula: "", telefono: "", licencia: "Tipo C", placa: "ABC1234", vehiculo: "Camioneta", marca: "—" });
-      renderConductoresSA();
-    });
-    $("saBtnUsarEjemplo")?.addEventListener("click", () => {
-      CONFIG.guias = JSON.parse(JSON.stringify(DEFAULT_CONFIG.guias));
-      saveConfig(); resetState();
-      $("saGuiasMsg").innerHTML = "✓ 9 guías de ejemplo recargadas.";
-    });
-    $("saBtnDescargarPlantilla")?.addEventListener("click", () => {
-      const csv = "numero_guia,destinatario,direccion,valor,bultos,peso_kg,conductor_idx\nEX0001,JUAN PEREZ,Av. Test 123,50,1,5,0\nEX0002,MARIA SOSA,Calle Demo,75,2,12,1\n";
-      const blob = new Blob([csv], { type: "text/csv" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = "plantilla_guias.csv"; a.click();
-    });
-    $("saInExcel")?.addEventListener("change", e => {
-      const f = e.target.files[0]; if (!f) return;
-      const fr = new FileReader();
-      fr.onload = ev => {
-        try {
-          const lines = ev.target.result.split(/\r?\n/).filter(l => l.trim());
-          const hdr = lines[0].split(",").map(s => s.trim().toLowerCase());
-          const rows = lines.slice(1).map(l => {
-            const cells = l.split(",");
-            const obj = {};
-            hdr.forEach((h,i) => obj[h] = cells[i] && cells[i].trim());
-            obj.valor = Number(obj.valor||0);
-            obj.bultos = Number(obj.bultos||1);
-            obj.peso_kg = Number(obj.peso_kg||0);
-            obj.conductor_idx = Number(obj.conductor_idx||0);
-            return obj;
-          }).filter(r => r.numero_guia);
-          if (rows.length) { CONFIG.guias = rows; saveConfig(); resetState(); $("saGuiasMsg").innerHTML = `✓ ${rows.length} guías cargadas desde ${esc(f.name)}`; }
-          else $("saGuiasMsg").innerHTML = "⚠ No se encontraron filas válidas.";
-        } catch(err) { $("saGuiasMsg").innerHTML = "⚠ Error leyendo el archivo: " + err.message; }
-      };
-      fr.readAsText(f);
     });
 
     // ===== Wire up =====
