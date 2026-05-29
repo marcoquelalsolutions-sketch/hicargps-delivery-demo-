@@ -351,7 +351,10 @@
         <div class="bx-meta mt-2" id="ingestaMsg"></div>
       </div>
       <div class="bx-card">
-        <div style="font-weight: 800; color: var(--bx-primary); margin-bottom: 8px;">📊 Pipeline de operación</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+          <div style="font-weight: 800; color: var(--bx-primary);">📊 Pipeline de operación</div>
+          <button id="btnRefrescarTablero" style="background: var(--bx-primary); color:#fff; border:none; font-size:.72rem; padding:6px 12px; border-radius:14px; cursor:pointer; font-weight:700;">↻ Actualizar</button>
+        </div>
         <div id="tableroFunnel" class="bx-funnel"></div>
         <div class="bx-meta mt-2" id="tableroCxc"></div>
       </div>
@@ -779,7 +782,33 @@
     $("btnVolverRuta").addEventListener("click", () => { renderConductor(); mostrar("vConductor"); });
 
     // ===== SUPERVISOR =====
-    function renderSupervisor() {
+    async function renderSupervisor() {
+      // Estado EN VIVO desde Postgres (refleja entregas de cualquier dispositivo). Respaldo local si no hay conexión.
+      const arr = await apiPost("/bemau-tablero", {});
+      const t = Array.isArray(arr) ? arr[0] : arr;
+      if (t && t.ok) {
+        const pe = t.por_estado || {};
+        $("tableroFunnel").innerHTML = `
+          <div class="stg s0"><b>${pe.creado||0}</b><span>Creadas</span></div>
+          <div class="stg s1"><b>${pe.asignado||0}</b><span>Asignadas</span></div>
+          <div class="stg s2"><b>${pe.en_proceso||0}</b><span>En proceso</span></div>
+          <div class="stg s3"><b>${pe.entregado||0}</b><span>Entregadas</span></div>
+          <div class="stg s4"><b>${pe.cerrado||0}</b><span>Facturadas</span></div>
+        `;
+        const cxc = Number(t.cxc_por_cobrar||0);
+        $("tableroCxc").innerHTML = `📦 Total: <b>${t.total_guias||0}</b> guías · 💰 CxC pendiente: <b style="color: var(--bx-accent);">${money(cxc)}</b> &nbsp;<span style="color:var(--bx-green);font-weight:800;font-size:.7rem;">● EN VIVO</span>`;
+        $("cxcCliente").textContent = "🏢 " + CONFIG.cliente.nombre;
+        const total_iva = cxc * 1.15, pronto = total_iva * 0.10;
+        $("cxcConsolidada").innerHTML = `Subtotal: <b>${money(cxc)}</b> · IVA 15%: <b>${money(cxc*0.15)}</b> · Total: <b style="color: var(--bx-accent);">${money(total_iva)}</b><br>💸 Ahorro pronto pago 24h: <b style="color: var(--bx-green);">${money(pronto)}</b>`;
+        $("tableroConductores").innerHTML = (t.conductores||[]).map((c,i) => {
+          const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":"  ";
+          return `<div class="bx-guia"><div><div class="dest">${medal} ${esc(c.nombre)}</div><div class="meta">${c.total} guías · ${c.asignado} asig · ${c.en_proceso} en proceso · <b style="color:var(--bx-green);">${c.entregadas} entregadas</b></div></div></div>`;
+        }).join("") || '<div class="bx-empty">Sin conductores.</div>';
+        return;
+      }
+      renderSupervisorLocal();
+    }
+    function renderSupervisorLocal() {
       const all = CONFIG.guias.map(g => Object.assign({}, g, STATE.guias_state[g.numero_guia] || { estado: "asignado" }));
       const cnt = { creado: 0, asignado: 0, en_proceso: 0, entregado: 0, cerrado: 0 };
       all.forEach(g => { cnt[g.estado] = (cnt[g.estado]||0) + 1; });
@@ -796,7 +825,6 @@
       const total_iva = cxc * 1.15;
       const pronto = total_iva * 0.10;
       $("cxcConsolidada").innerHTML = `Subtotal: <b>${money(cxc)}</b> · IVA 15%: <b>${money(cxc*0.15)}</b> · Total: <b style="color: var(--bx-accent);">${money(total_iva)}</b><br>💸 Ahorro pronto pago 24h: <b style="color: var(--bx-green);">${money(pronto)}</b>`;
-      // Por conductor
       const byCond = {};
       CONFIG.conductores.forEach((c,i) => { byCond[i] = { nombre: c.nombre, placa: c.placa, total:0, asig:0, proc:0, ent:0 }; });
       all.forEach(g => {
@@ -813,14 +841,22 @@
     }
     $("btnPrecargar")?.addEventListener("click", () => {
       resetState();
-      $("ingestaMsg").innerHTML = "✓ <b>9 guías precargadas</b> y asignadas a conductores. Listo para la demo.";
+      $("ingestaMsg").innerHTML = "✓ <b>9 guías listas</b> y asignadas a conductores. Listo para la demo.";
       renderSupervisor();
     });
-    $("btnCargarLiquidacion")?.addEventListener("click", () => {
-      const all = CONFIG.guias.map(g => Object.assign({}, g, STATE.guias_state[g.numero_guia] || { estado: "asignado" }));
-      const hayEntregadas = all.some(g => g.estado === "entregado");
-      openModal("📋 Liquidación CxC · documento auditable", generarReporteCxC(),
-        hayEntregadas ? { sendLabel: "📧 Enviar liquidación al cliente", onSend: enviarLiquidacion } : null);
+    $("btnRefrescarTablero")?.addEventListener("click", () => {
+      const b = $("btnRefrescarTablero"); b.textContent = "↻ …";
+      Promise.resolve(renderSupervisor()).finally(() => { b.textContent = "↻ Actualizar"; });
+    });
+    $("btnCargarLiquidacion")?.addEventListener("click", async () => {
+      const btn = $("btnCargarLiquidacion"); const txt = btn.textContent;
+      btn.disabled = true; btn.textContent = "Cargando…";
+      const ent = await apiPost("/bemau-entregadas", {});   // entregadas EN VIVO desde Postgres
+      btn.disabled = false; btn.textContent = txt;
+      const lista = Array.isArray(ent) ? ent.filter(x => x && x.numero_guia) : null;
+      const hay = lista ? lista.length > 0 : CONFIG.guias.some(g => (STATE.guias_state[g.numero_guia]||{}).estado === "entregado");
+      openModal("📋 Liquidación CxC · documento auditable", generarReporteCxC(lista || undefined),
+        hay ? { sendLabel: "📧 Enviar liquidación al cliente", onSend: enviarLiquidacion } : null);
     });
     async function enviarLiquidacion() {
       const btn = $("modalEnviar");
@@ -972,9 +1008,14 @@ ${fotoUrl || firmaUrl ? `<tr><td style='padding:14px 30px 4px;'><div style='font
         <div style="background: var(--bx-green); color: #fff; padding: 10px; border-radius: 8px; margin-top: 12px; text-align: center; font-weight: 700;">✓ Email enviado automáticamente al cliente · 0 segundos</div>
       </div>`;
     }
-    function generarReporteCxC() {
-      const all = CONFIG.guias.map(g => Object.assign({}, g, STATE.guias_state[g.numero_guia] || { estado: "asignado" }));
-      const ent = all.filter(g => g.estado === "entregado");
+    function generarReporteCxC(entregadasLive) {
+      let ent;
+      if (Array.isArray(entregadasLive)) {
+        ent = entregadasLive;   // datos EN VIVO desde Postgres (/bemau-entregadas)
+      } else {
+        const all = CONFIG.guias.map(g => Object.assign({}, g, STATE.guias_state[g.numero_guia] || { estado: "asignado" }));
+        ent = all.filter(g => g.estado === "entregado");
+      }
       const cli = CONFIG.cliente, emp = CONFIG.empresa;
       const sub = ent.reduce((a,b) => a + Number(b.valor||0), 0);
       const iva = sub * 0.15;
@@ -992,7 +1033,7 @@ ${fotoUrl || firmaUrl ? `<tr><td style='padding:14px 30px 4px;'><div style='font
       const selloEC = fecha.toLocaleString("es-EC", { hour12: false });
       if (!ent.length) return `<div style="padding:60px; text-align:center; font-family:Arial,sans-serif;"><div style="font-size:54px;">📄</div><h2 style="color:${emp.color_primary};">Sin cuentas por cobrar</h2><p style="color:#64748b;">Aún no hay entregas confirmadas para facturar.</p></div>`;
       const filas = ent.map((r,i) => {
-        const c = CONFIG.conductores[r.conductor_idx] || {};
+        const c = (r.conductor_idx != null && CONFIG.conductores[r.conductor_idx]) ? CONFIG.conductores[r.conductor_idx] : { nombre: r.operario, placa: r.placa };
         return `<tr><td style="text-align:center;">${i+1}</td><td><a href="${actaUrl(r.numero_guia)}" target="_blank" rel="noopener" style="color:${emp.color_accent};font-weight:800;text-decoration:underline;">${esc(r.numero_guia)}</a></td><td style="color:#64748b;">${fechaStr}</td><td>${esc(r.destinatario)}</td><td style="text-align:center;">${r.bultos||'-'}</td><td style="text-align:center;">${r.peso_kg||'-'} kg</td><td style="color:#475569; font-size:11px;">${esc(c.nombre||'-')}<br>${esc(c.placa||'')}</td><td style="text-align:center;"><a href="${actaUrl(r.numero_guia)}" target="_blank" rel="noopener" style="display:inline-block;background:${emp.color_primary};color:#fff;font-size:10px;font-weight:800;padding:4px 9px;border-radius:8px;text-decoration:none;white-space:nowrap;">📄 Ver acta</a></td><td style="text-align:right; font-weight:700;">${money(r.valor)}</td></tr>`;
       }).join("");
       return `<div style="font-family:Arial,Helvetica,sans-serif; background:#eef2f7; padding:24px;">
