@@ -1176,10 +1176,12 @@ ${fotoUrl || firmaUrl ? `<tr><td style='padding:14px 30px 4px;'><div style='font
     });
     $("saBtnStart")?.addEventListener("click", async () => {
       readSuperAdmin(); saveConfig(); resetState();
+      // Reinicia el dataset en Postgres → cada demo arranca limpio (evita acumular entregas de sesiones previas en la conciliación)
+      const reset = await apiPost("/bemau-reset-demo", {});
       const r = await guardarDemoEmail();
-      alert(r
-        ? `✓ Demo lista.\n\nMarca: ${CONFIG.empresa.nombre}\nLas notificaciones (acta, liquidación, links) llegarán a:\n${CONFIG.cliente.email || '— (sin correo)'}`
-        : "✓ Demo lista (marca y contacto guardados localmente).\n⚠ No se pudo conectar con n8n para fijar el correo real — revisa la conexión.");
+      alert((reset ? "🔄 Tablero reiniciado: 9 guías sin entregar.\n\n" : "") + (r
+        ? `✓ Demo lista.\nMarca: ${CONFIG.empresa.nombre}\nNotificaciones (acta · liquidación · links) → ${CONFIG.cliente.email || '— (sin correo)'}`
+        : "✓ Demo lista (guardado local).\n⚠ Sin conexión n8n para reiniciar/fijar correo."));
       mostrar("vLogin");
     });
     $("saBtnReset")?.addEventListener("click", () => {
